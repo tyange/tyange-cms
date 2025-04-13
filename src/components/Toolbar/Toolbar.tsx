@@ -8,7 +8,6 @@ interface ToolbarProps {
 }
 
 export default function Toolbar(props: ToolbarProps): JSX.Element {
-  console.log(props);
   return (
     <div class="p-2 flex space-x-1 bg-slate-400 w-full">
       <div class="flex space-x-1">

@@ -6,3 +6,10 @@
 @theme {
   --font-pretendard: "Pretendard";
 }
+
+calendar-date {
+  &::part(button) {
+    border: none;
+    background: none;
+  }
+}
