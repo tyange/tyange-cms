@@ -1,12 +1,11 @@
-import { createSignal, Show } from "solid-js";
+import { createSignal, For, Index, Show } from "solid-js";
 import ky from "ky";
 import { createTiptapEditor } from "solid-tiptap";
 import StarterKit from "@tiptap/starter-kit";
 import BubbleMenu from "@tiptap/extension-bubble-menu";
 import "cally";
 import { format } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-solid";
-
+import { X } from "lucide-solid";
 import Toolbar from "../Toolbar/Toolbar";
 
 export default function PostEditor() {
@@ -17,6 +16,8 @@ export default function PostEditor() {
   const [publishedAt, setPublishedAt] = createSignal(
     format(new Date(), "yyyy-MM-dd")
   );
+  const [tags, setTags] = createSignal<string[]>([]);
+  const [tagInput, setTagInput] = createSignal("");
 
   const editor = createTiptapEditor(() => ({
     element: container()!,
@@ -45,12 +46,26 @@ export default function PostEditor() {
           title: title(),
           description: description(),
           content: editor()?.getHTML(),
+          tags: tags(),
+          publishedAt: publishedAt(),
         },
       });
       console.log(res);
     } catch (err) {
       console.error(err);
     }
+  }
+
+  function handleTagKeyDown(e: KeyboardEvent) {
+    if (e.key === "Enter" && tagInput().trim() !== "") {
+      e.preventDefault();
+      setTags([...tags(), tagInput().trim()]);
+      setTagInput("");
+    }
+  }
+
+  function removeTag(tagToRemove: string) {
+    setTags(tags().filter((tag) => tag !== tagToRemove));
   }
 
   return (
@@ -75,36 +90,50 @@ export default function PostEditor() {
           onChange={(e) => setDescription(e.target.value)}
         />
       </fieldset>
-      <calendar-date
-        value={publishedAt()}
-        onChange={(e: Event) =>
-          setPublishedAt((e.target as HTMLInputElement).value)
-        }
-      >
-        <button
-          type="button"
-          slot="previous"
-          class="btn btn-xs btn-circle btn-neutral"
-        >
-          <ChevronLeft />
-        </button>
-        <button
-          type="button"
-          slot="next"
-          class="btn btn-xs btn-circle btn-neutral"
-        >
-          <ChevronRight />
-        </button>
-        <calendar-month />
-      </calendar-date>
-      <div ref={setMenu} class="rounded-lg overflow-hidden">
-        <Show when={editor()}>
-          {(editorInstance) => <Toolbar editor={editorInstance()} />}
-        </Show>
+      <fieldset class="fieldset w-full">
+        <legend class="fieldset-legend">작성한 날</legend>
+        <input
+          type="date"
+          class="input w-full"
+          value={publishedAt()}
+          onInput={(e) => setPublishedAt(e.target.value)}
+        />
+      </fieldset>
+      <fieldset class="fieldset w-full">
+        <legend class="fieldset-legend">문장들</legend>
+        <div ref={setMenu} class="rounded-lg overflow-hidden">
+          <Show when={editor()}>
+            {(editorInstance) => <Toolbar editor={editorInstance()} />}
+          </Show>
+        </div>
+        <div
+          class="h-80 border border-base-content/20 rounded-sm p-5"
+          ref={setContainer}
+        />
+      </fieldset>
+      <fieldset class="fieldset w-full">
+        <legend class="fieldset-legend">태그들</legend>
+        <input
+          type="text"
+          class="input w-full"
+          value={tagInput()}
+          onInput={(e) => setTagInput(e.target.value)}
+          onKeyDown={handleTagKeyDown}
+          placeholder="Press Enter to add a tag"
+        />
+      </fieldset>
+      <div class="flex flex-wrap gap-2">
+        <Index each={tags()}>
+          {(tag) => (
+            <button type="button" class="btn" onClick={() => removeTag(tag())}>
+              {tag()}
+              <X class="w-4 h-4" />
+            </button>
+          )}
+        </Index>
       </div>
-      <div class="h-80" ref={setContainer} />
       <div>
-        <button type="submit" class="btn" onClick={handleSubmit}>
+        <button type="button" class="btn" onClick={handleSubmit}>
           SUBMIT
         </button>
       </div>
