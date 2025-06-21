@@ -1,3 +1,29 @@
+<script lang="ts" setup>
+definePageMeta({
+  layout: 'home',
+})
+
+const enteredId = ref('')
+const enteredPassword = ref('')
+
+async function handleSubmit() {
+  try {
+    const res = await $fetch(`https://tyange.hopto.org/cms/login`, {
+      method: 'POST',
+      body: {
+        user_id: enteredId.value,
+        password: enteredPassword.value,
+      },
+    })
+
+    console.log(res)
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
+</script>
+
 <template>
   <form
     class="flex gap-5 flex-col"
@@ -17,6 +43,7 @@
         type="password"
         class="input"
       >
+
     </label>
     <button
       type="submit"
@@ -26,31 +53,5 @@
     </button>
   </form>
 </template>
-
-<script lang="ts" setup>
-definePageMeta({
-  layout: 'home',
-})
-
-const enteredId = ref('')
-const enteredPassword = ref('')
-
-const handleSubmit = async () => {
-  try {
-    const res = await $fetch(`https://tyange.hopto.org/cms/login`, {
-      method: 'POST',
-      body: {
-        user_id: enteredId.value,
-        password: enteredPassword.value,
-      },
-    })
-
-    console.log(res)
-  }
-  catch (err) {
-    console.log(err)
-  }
-}
-</script>
 
 <style scoped></style>
