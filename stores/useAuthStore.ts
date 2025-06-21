@@ -1,7 +1,8 @@
+import type { AuthStore } from '~/types/auth-store.types'
 import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', {
-  state: (): { isAuth: boolean, accessToken?: string, refreshToken?: string } => ({
+  state: (): AuthStore => ({
     isAuth: false,
   }),
   persist: true,
