@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 export const useAuthStore = defineStore('auth', {
   state: (): AuthStore => ({
     isAuth: false,
+
   }),
   persist: true,
 })
