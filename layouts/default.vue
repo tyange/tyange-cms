@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+import DashBoardHeader from '~/components/DashBoardHeader.vue'
 </script>
 
 <template>
@@ -7,9 +7,9 @@
     <input id="my-drawer" type="checkbox" class="drawer-toggle">
     <div class="drawer-content">
       <main>
+        <DashBoardHeader />
         <p>default</p>
       </main>
-      <label for="my-drawer" class="btn btn-primary drawer-button">Open drawer</label>
     </div>
     <div class="drawer-side">
       <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay" />
