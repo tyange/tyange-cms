@@ -32,21 +32,20 @@ async function handleSubmit() {
     class="flex gap-5 flex-col"
     @submit.prevent="handleSubmit"
   >
-    <label class="input">
+    <label class="input w-full">
       <span class="label">ID</span>
       <input
         v-model="enteredId"
         type="text"
       >
     </label>
-    <label class="input">
+    <label class="input w-full">
       <span class="label">PW</span>
       <input
         v-model="enteredPassword"
         type="password"
         class="input"
       >
-
     </label>
     <button
       type="submit"
