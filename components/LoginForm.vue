@@ -3,6 +3,8 @@ import type { AuthResponseTypes } from '~/types/auth-response.types'
 
 import { useAuthStore } from '~/stores/useAuthStore'
 
+const config = useRuntimeConfig()
+
 const enteredId = ref('')
 const enteredPassword = ref('')
 
@@ -10,7 +12,7 @@ const authStore = useAuthStore()
 
 async function handleSubmit() {
   try {
-    const res = await $fetch<AuthResponseTypes>(`https://tyange.hopto.org/cms/login`, {
+    const res = await $fetch<AuthResponseTypes>(`${config.public.tyangeCmsApiBase}/login`, {
       method: 'POST',
       body: {
         user_id: enteredId.value,
