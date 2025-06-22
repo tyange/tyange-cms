@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import DashBoardHeader from '~/components/DashBoardHeader.vue'
+import Sidebar from '~/components/Sidebar.vue'
 </script>
 
 <template>
@@ -13,10 +14,7 @@ import DashBoardHeader from '~/components/DashBoardHeader.vue'
     </div>
     <div class="drawer-side">
       <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay" />
-      <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-      </ul>
+      <Sidebar />
     </div>
   </div>
 </template>

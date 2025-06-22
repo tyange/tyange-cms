@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
     '@nuxt/eslint',
+    'nuxt-tiptap-editor',
   ],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
@@ -22,5 +23,8 @@ export default defineNuxtConfig({
     public: {
       tyangeCmsApiBase: '',
     },
+  },
+  devServer: {
+    port: 3001,
   },
 })
