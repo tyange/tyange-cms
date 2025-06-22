@@ -6,9 +6,9 @@ import DashBoardHeader from '~/components/DashBoardHeader.vue'
   <div class="drawer">
     <input id="my-drawer" type="checkbox" class="drawer-toggle">
     <div class="drawer-content">
-      <main>
+      <main class="w-dvw h-dvh flex flex-col">
         <DashBoardHeader />
-        <p>default</p>
+        <slot />
       </main>
     </div>
     <div class="drawer-side">
