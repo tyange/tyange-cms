@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { AuthResponseTypes } from '~/types/auth-response.types'
 
+import { useAuthStore } from '~/stores/useAuthStore'
+
 const enteredId = ref('')
 const enteredPassword = ref('')
 
