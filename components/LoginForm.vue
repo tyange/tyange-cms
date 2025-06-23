@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { AuthResponseTypes } from '~/types/auth-response.types'
-
+import type { AuthResponse } from '~/types/response.types'
 import { useAuthStore } from '~/stores/useAuthStore'
 
 const config = useRuntimeConfig()
@@ -12,7 +11,7 @@ const authStore = useAuthStore()
 
 async function handleSubmit() {
   try {
-    const res = await $fetch<AuthResponseTypes>(`${config.public.tyangeCmsApiBase}/login`, {
+    const res = await $fetch<AuthResponse>(`${config.public.tyangeCmsApiBase}/login`, {
       method: 'POST',
       body: {
         user_id: enteredId.value,
