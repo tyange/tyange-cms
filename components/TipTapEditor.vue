@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import type { PostListItem } from '~/types/post-list-item.types'
+
+const props = defineProps<{ data: PostListItem }>()
+
 const editor = useEditor({
-  content: '<p>I\'m running Tiptap with Vue.js. 🎉</p>',
+  content: props.data.content ?? '<p>I\'m running Tiptap with Vue.js. 🎉</p>',
   extensions: [TiptapStarterKit],
   editorProps: {
     attributes: {
