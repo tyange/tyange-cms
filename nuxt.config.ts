@@ -27,4 +27,9 @@ export default defineNuxtConfig({
   devServer: {
     port: 3001,
   },
+  vue: {
+    compilerOptions: {
+      // isCustomElement: tag => tag.includes('calendar-date'),
+    },
+  },
 })
