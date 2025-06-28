@@ -2,16 +2,21 @@
 import type { PostListItem } from '~/types/post-list-item.types'
 import { X } from 'lucide-vue-next'
 
-const props = defineProps<{ data: PostListItem }>()
+const props = defineProps<{ data?: PostListItem }>()
 
-const enteredTitle = ref(props.data.title)
-const enteredDescription = ref(props.data.description)
-const enteredPublishedAt = ref(props.data.published_at)
+const route = useRoute()
+
+const enteredTitle = ref(props.data?.title ?? '')
+const enteredDescription = ref(props.data?.description ?? '')
+const enteredPublishedAt = ref(props.data?.published_at ?? '')
 const enteredTag = ref('')
-const enteredTags = ref<string[]>(props.data.tags)
+const enteredTags = ref<string[]>(props.data?.tags ?? [])
+
+const isNew = computed(() => route.name === 'managing-blog-new')
+const uploadButtonText = computed(() => isNew.value ? 'UPLOAD' : 'SAVE')
 
 const editor = useEditor({
-  content: props.data.content ?? '<p>I\'m running Tiptap with Vue.js. 🎉</p>',
+  content: props.data?.content ?? '<p>I\'m running Tiptap with Vue.js. 🎉</p>',
   extensions: [TiptapStarterKit],
   editorProps: {
     attributes: {
@@ -63,7 +68,7 @@ onBeforeUnmount(() => {
         TAGS
       </legend>
       <div class="flex flex-col gap-3 py-1">
-        <div v-if="enteredTags.length > 0">
+        <div v-if="enteredTags.length > 0" class="flex gap-1">
           <button v-for="tag of enteredTags" :key="tag" class="btn" @click="handleDeleteTag(tag)">
             {{ tag }}
             <X class="h-lh" :size="15" />
@@ -218,7 +223,7 @@ onBeforeUnmount(() => {
           redo
         </button>
         <button class="btn btn-primary">
-          UPLOAD
+          {{ uploadButtonText }}
         </button>
         <button class="btn btn-error">
           DELETE
