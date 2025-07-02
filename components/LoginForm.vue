@@ -20,7 +20,7 @@ async function handleSubmit() {
     })
 
     if (res) {
-      authStore.$patch({ isAuth: true, accessToken: res.accessToken, refreshToken: res.refreshToken })
+      authStore.$patch({ isAuth: true, accessToken: res.access_token, refreshToken: res.refresh_token })
       await navigateTo('/dashboard')
     }
   }
