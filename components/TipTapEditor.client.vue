@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import type { AuthStore } from '~/types/auth-store.types'
 import type { PostListItem } from '~/types/post-list-item.types'
 import { X } from 'lucide-vue-next'
 
 const props = defineProps<{ data?: PostListItem }>()
 
+const config = useRuntimeConfig()
 const route = useRoute()
+const authObject = useCookie<AuthStore>('auth')
 
 const enteredTitle = ref(props.data?.title ?? '')
 const enteredDescription = ref(props.data?.description ?? '')
@@ -35,6 +38,35 @@ function handleSubmitTag() {
 function handleDeleteTag(tag: string) {
   if (enteredTags.value.includes(tag)) {
     enteredTags.value = enteredTags.value.filter(et => et !== tag)
+  }
+}
+
+async function handleSubmitPost() {
+  if (!authObject.value?.accessToken) {
+    console.error('access token is missing in handleSubmitPost.')
+    return
+  }
+
+  try {
+    const post = {
+      title: enteredTitle.value,
+      description: enteredDescription.value,
+      published_at: enteredPublishedAt.value,
+      tags: enteredTags.value.join(','),
+      content: editor.value?.getHTML(),
+    }
+
+    await $fetch(`${config.public.tyangeCmsApiBase}/post/upload`, {
+      method: 'POST',
+      body: post,
+      headers: {
+        'content-type': 'application/json',
+        'Authorization': authObject.value.accessToken,
+      },
+    })
+  }
+  catch (err) {
+    console.error(err)
   }
 }
 
@@ -222,7 +254,7 @@ onBeforeUnmount(() => {
         >
           redo
         </button>
-        <button class="btn btn-primary">
+        <button class="btn btn-primary" @click="handleSubmitPost">
           {{ uploadButtonText }}
         </button>
         <button class="btn btn-error">
