@@ -4,6 +4,7 @@ import type { CMSResponse } from '~/types/response.types'
 
 definePageMeta({
   layout: 'default',
+  middleware: ['auth'],
 })
 
 const config = useRuntimeConfig()
