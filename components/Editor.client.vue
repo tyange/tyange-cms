@@ -6,7 +6,6 @@ import { X } from 'lucide-vue-next'
 
 import { MdEditor, config as MdEditorConfig } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
-import '@vavt/cm-extension/dist/previewTheme/arknights.css'
 
 const props = defineProps<{ data?: PostListItem }>()
 
@@ -114,7 +113,7 @@ async function handleSubmitPost() {
         {{ uploadButtonText }}
       </button>
     </div>
-    <MdEditor v-model="enteredContent" language="ko-KR" preview-theme="arknights" />
+    <MdEditor v-model="enteredContent" language="ko-KR" />
   </div>
 </template>
 
