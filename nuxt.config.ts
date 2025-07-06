@@ -8,7 +8,6 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
     '@nuxt/eslint',
-    'nuxt-tiptap-editor',
   ],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],

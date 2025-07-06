@@ -9,7 +9,7 @@ const { data } = await useFetch<PostListItem>(`${config.public.tyangeCmsApiBase}
 </script>
 
 <template>
-  <TipTapEditor v-if="data" :data="data" />
+  <Editor v-if="data" :data="data" />
 </template>
 
 <style scoped>
