@@ -18,7 +18,7 @@ const postList = computed(() => data.value?.data.posts ?? [])
   <div class="w-full h-full">
     <ul v-if="postList.length > 0" class="w-full h-full p-10 flex flex-col items-center space-y-6">
       <li v-for="post in postList" :key="post.post_id" class="w-full max-w-3xl bg-gray-800/50 border border-gray-700 shadow-lg rounded-2xl p-6 text-gray-300 transition-all duration-300 backdrop-blur-sm">
-        <NuxtLink :to="`/managing-blog/${post.post_id}`">
+        <NuxtLink :to="`/managing-blog/update/${post.post_id}`">
           <div class="flex flex-col gap-6">
             <div>
               <label class="text-xs text-gray-500 font-medium mb-2 block">
