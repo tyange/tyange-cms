@@ -107,7 +107,7 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
         body: formData,
       })
 
-      results.push(res.data.image_path)
+      results.push(`${config.public.tyangeCmsApiBase}${res.data.image_path}`)
     }
 
     callback(results)
