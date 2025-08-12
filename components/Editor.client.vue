@@ -4,8 +4,8 @@ import type { PostListItem } from '~/types/post-list-item.types'
 import type { CMSResponse } from '~/types/response.types'
 import KO_KR from '@vavt/cm-extension/dist/locale/ko-KR'
 import { X } from 'lucide-vue-next'
-
 import { MdEditor, config as MdEditorConfig } from 'md-editor-v3'
+import { POST_STATUS } from '~/constants/post-status.constant'
 import 'md-editor-v3/lib/style.css'
 
 const props = defineProps<{ data?: PostListItem }>()
@@ -29,6 +29,7 @@ const enteredPublishedAt = ref(props.data?.published_at ?? '')
 const enteredTag = ref('')
 const enteredTags = ref<string[]>(props.data?.tags ?? [])
 const enteredContent = ref(props.data?.content ?? '')
+const status = ref<POST_STATUS>(props.data?.status ?? POST_STATUS.DRAFT)
 
 const isNew = computed(() => route.name === 'managing-blog-create')
 const uploadButtonText = computed(() => isNew.value ? 'UPLOAD' : 'SAVE')
@@ -65,6 +66,7 @@ async function handleSubmitPost() {
       published_at: enteredPublishedAt.value,
       tags: enteredTags.value.join(','),
       content: enteredContent.value,
+      status: status.value,
     }
 
     await $fetch(`${config.public.tyangeCmsApiBase}/post/update/${postId.value}`, {
@@ -131,7 +133,7 @@ onMounted(async () => {
           published_at: '',
           tags: '',
           content: '',
-          status: 'draft',
+          status: POST_STATUS.DRAFT,
         },
       })
       postId.value = res.data.post_id
@@ -177,7 +179,12 @@ onMounted(async () => {
         <input v-model="enteredTag" type="text" class="input" @keydown.enter="handleSubmitTag">
       </div>
     </fieldset>
-    <div class="mb-5">
+    <div class="mb-5 flex justify-between">
+      <select v-model="status">
+        <option v-for="s in POST_STATUS" :key="s">
+          {{ s }}
+        </option>
+      </select>
       <button class="btn" @click="handleSubmitPost">
         {{ uploadButtonText }}
       </button>
