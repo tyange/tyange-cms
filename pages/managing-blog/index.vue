@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AuthStore } from '~/types/auth-store.types'
 import type { PostListItem } from '~/types/post-list-item.types'
 import type { CMSResponse } from '~/types/response.types'
 
@@ -9,7 +10,12 @@ definePageMeta({
 
 const config = useRuntimeConfig()
 
-const { data } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`${config.public.tyangeCmsApiBase}/posts`)
+const authObject = useCookie<AuthStore>('auth')
+
+const { data } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`${config.public.tyangeCmsApiBase}/admin/posts`, {
+  headers: { Authorization: authObject.value!.accessToken! },
+  server: false,
+})
 
 const postList = computed(() => data.value?.data.posts ?? [])
 </script>
@@ -17,7 +23,10 @@ const postList = computed(() => data.value?.data.posts ?? [])
 <template>
   <div class="w-full h-full">
     <ul v-if="postList.length > 0" class="w-full h-full p-10 flex flex-col items-center space-y-6">
-      <li v-for="post in postList" :key="post.post_id" class="w-full max-w-3xl bg-gray-800/50 border border-gray-700 shadow-lg rounded-2xl p-6 text-gray-300 transition-all duration-300 backdrop-blur-sm">
+      <li
+        v-for="post in postList" :key="post.post_id"
+        class="w-full max-w-3xl bg-gray-800/50 border border-gray-700 shadow-lg rounded-2xl p-6 text-gray-300 transition-all duration-300 backdrop-blur-sm"
+      >
         <NuxtLink :to="`/managing-blog/update/${post.post_id}`">
           <div class="flex flex-col gap-6">
             <div>
@@ -58,7 +67,10 @@ const postList = computed(() => data.value?.data.posts ?? [])
               <label class="text-xs text-gray-500 font-medium w-full mb-2">
                 TAGS
               </label>
-              <span v-for="tag in post.tags" :key="tag" class="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-full border border-gray-600">
+              <span
+                v-for="tag in post.tags" :key="tag"
+                class="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-full border border-gray-600"
+              >
                 {{ tag }}
               </span>
             </div>
@@ -74,6 +86,4 @@ const postList = computed(() => data.value?.data.posts ?? [])
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
