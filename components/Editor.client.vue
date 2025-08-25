@@ -69,7 +69,7 @@ async function handleSubmitPost() {
       status: status.value,
     }
 
-    await $fetch(`${config.public.tyangeCmsApiBase}/post/update/${postId.value}`, {
+    const res = await $fetch<CMSResponse<PostListItem>>(`${config.public.tyangeCmsApiBase}/post/update/${postId.value}`, {
       method: 'PUT',
       body: post,
       headers: {
@@ -77,6 +77,10 @@ async function handleSubmitPost() {
         'Authorization': authObject.value.accessToken,
       },
     })
+
+    if (res.status) {
+      await navigateTo('/managing-blog')
+    }
   }
   catch (err) {
     console.error(err)
@@ -118,31 +122,6 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
     console.error('파일 업로드 중 오류 발생:', error)
   }
 }
-
-onMounted(async () => {
-  if (authObject?.value?.accessToken && isNew.value) {
-    try {
-      const res = await $fetch<CMSResponse<{ post_id: string }>>(`${config.public.tyangeCmsApiBase}/post/upload`, {
-        headers: {
-          Authorization: authObject.value.accessToken,
-        },
-        method: 'POST',
-        body: {
-          title: '',
-          description: '',
-          published_at: '',
-          tags: '',
-          content: '',
-          status: POST_STATUS.DRAFT,
-        },
-      })
-      postId.value = res.data.post_id
-    }
-    catch (err) {
-      console.error(`failed to initializing post in onMounted: `, err)
-    }
-  }
-})
 </script>
 
 <template>
