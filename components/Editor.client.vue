@@ -19,7 +19,6 @@ MdEditorConfig({
 })
 
 const config = useRuntimeConfig()
-const route = useRoute()
 const authObject = useCookie<AuthStore>('auth')
 
 const postId = ref<string | null>(props.data?.post_id ?? null)
@@ -30,9 +29,6 @@ const enteredTag = ref('')
 const enteredTags = ref<string[]>(props.data?.tags ?? [])
 const enteredContent = ref(props.data?.content ?? '')
 const status = ref<POST_STATUS>(props.data?.status ?? POST_STATUS.DRAFT)
-
-const isNew = computed(() => route.name === 'managing-blog-create')
-const uploadButtonText = computed(() => isNew.value ? 'UPLOAD' : 'SAVE')
 
 function handleSubmitTag() {
   if (enteredTag.value.trim()) {
@@ -53,8 +49,42 @@ async function handleSubmitPost() {
     return
   }
 
+  try {
+    const post = {
+      title: enteredTitle.value,
+      description: enteredDescription.value,
+      published_at: enteredPublishedAt.value,
+      tags: enteredTags.value.join(','),
+      content: enteredContent.value,
+      status: status.value,
+    }
+
+    const res = await $fetch<CMSResponse<PostListItem>>(`${config.public.tyangeCmsApiBase}/post/upload`, {
+      method: 'POST',
+      body: post,
+      headers: {
+        'content-type': 'application/json',
+        'Authorization': authObject.value.accessToken,
+      },
+    })
+
+    if (res.status) {
+      await navigateTo('/managing-blog')
+    }
+  }
+  catch (err) {
+    console.error(err)
+  }
+}
+
+async function handleEditPost() {
+  if (!authObject.value?.accessToken) {
+    console.error('access token is missing in handleEditPost.')
+    return
+  }
+
   if (!postId.value) {
-    console.error('no post id in handleSubmitPost.')
+    console.error('no post id in handleEditPost.')
     return
   }
 
@@ -164,8 +194,11 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
           {{ s }}
         </option>
       </select>
-      <button class="btn" @click="handleSubmitPost">
-        {{ uploadButtonText }}
+      <button v-if="!postId" class="btn" @click="handleSubmitPost">
+        CREATE
+      </button>
+      <button v-if="postId" class="btn" @click="handleEditPost">
+        EDIT
       </button>
     </div>
     <MdEditor v-model="enteredContent" language="ko-KR" @on-upload-img="handleUploadImage" />
