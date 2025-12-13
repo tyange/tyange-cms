@@ -20,7 +20,7 @@
     "install": "^0.13.0",
     "lucide-vue-next": "^0.522.0",
     "md-editor-v3": "^5.7.1",
-    "nuxt": "^3.17.5",
+    "nuxt": "^4.2.2",
     "nuxt-tiptap-editor": "2.2.1",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.3.0",
