@@ -8,7 +8,10 @@ defineEmits<{ (e: 'handleOpenDrawer'): void }>()
   <header>
     <div class="navbar bg-base-100 shadow-sm">
       <div class="flex flex-none">
-        <button class="btn drawer-button btn-square btn-ghost" @click="$emit('handleOpenDrawer')">
+        <button
+          class="btn drawer-button btn-square btn-ghost"
+          @click="$emit('handleOpenDrawer')"
+        >
           <Menu />
         </button>
         <div class="flex-1">
@@ -20,6 +23,4 @@ defineEmits<{ (e: 'handleOpenDrawer'): void }>()
   </header>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

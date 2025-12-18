@@ -85,5 +85,7 @@
     "pcss",
     "postcss"
   ],
-  "eslint.useFlatConfig": true
+  "eslint.useFlatConfig": true,
+  "oxc.enable": false,
+  "biome.enabled": false
 }
