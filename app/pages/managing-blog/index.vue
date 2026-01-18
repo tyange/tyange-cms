@@ -8,13 +8,10 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const config = useRuntimeConfig()
-
 const authObject = useCookie<AuthStore>('auth')
 
-const { data, refresh } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`${config.public.tyangeCmsApiBase}/admin/posts`, {
+const { data, refresh } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`/api/posts`, {
   headers: { Authorization: authObject.value!.accessToken! },
-  server: false,
 })
 
 const postList = computed(() => data.value?.data.posts ?? [])
@@ -26,8 +23,7 @@ async function handleDeletePost(postId: string) {
   }
 
   try {
-    const res = await $fetch<CMSResponse<{ post_id: string }>>(`${config.public.tyangeCmsApiBase}/post/delete/${postId}`, {
-      method: 'DELETE',
+    const res = await $fetch<CMSResponse<{ post_id: string }>>(`/api/post/delete?id=${postId}`, {
       headers: {
         Authorization: authObject.value.accessToken,
       },

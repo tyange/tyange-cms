@@ -59,12 +59,10 @@ async function handleSubmitPost() {
       status: status.value,
     }
 
-    const res = await $fetch<CMSResponse<PostListItem>>(`${config.public.tyangeCmsApiBase}/post/upload`, {
-      method: 'POST',
+    const res = await $fetch<CMSResponse<PostListItem>>(`/api/post/upload`, {
       body: post,
       headers: {
-        'content-type': 'application/json',
-        'Authorization': authObject.value.accessToken,
+        Authorization: authObject.value.accessToken,
       },
     })
 
@@ -100,11 +98,9 @@ async function handleEditPost() {
     }
 
     const res = await $fetch<CMSResponse<PostListItem>>(`${config.public.tyangeCmsApiBase}/post/update/${postId.value}`, {
-      method: 'PUT',
       body: post,
       headers: {
-        'content-type': 'application/json',
-        'Authorization': authObject.value.accessToken,
+        Authorization: authObject.value.accessToken,
       },
     })
 
