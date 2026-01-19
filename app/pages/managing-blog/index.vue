@@ -12,7 +12,7 @@ const authObject = useCookie<AuthStore>('auth')
 
 const { data, refresh } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`/api/posts`, {
   headers: { Authorization: authObject.value!.accessToken! },
-  server: false,
+  credentials: 'include',
 })
 
 const postList = computed(() => data.value?.data.posts ?? [])
@@ -29,6 +29,7 @@ async function handleDeletePost(postId: string) {
       headers: {
         Authorization: authObject.value.accessToken,
       },
+      credentials: 'include',
     })
 
     if (res.status) {

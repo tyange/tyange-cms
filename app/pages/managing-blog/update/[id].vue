@@ -3,7 +3,9 @@ import type { PostListItem } from '~/types/post-list-item.types'
 
 const route = useRoute()
 
-const { data } = await useFetch<PostListItem>(`/api/post?id=${route.params.id}`)
+const { data } = await useFetch<PostListItem>(`/api/post?id=${route.params.id}`, {
+  credentials: 'include',
+})
 </script>
 
 <template>

@@ -65,6 +65,7 @@ async function handleSubmitPost() {
       headers: {
         Authorization: authObject.value.accessToken,
       },
+      credentials: 'include',
     })
 
     if (res.status) {
@@ -104,6 +105,7 @@ async function handleEditPost() {
       headers: {
         Authorization: authObject.value.accessToken,
       },
+      credentials: 'include',
     })
 
     if (res.status) {
@@ -139,6 +141,7 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
           Authorization: authObject.value.accessToken,
         },
         body: formData,
+        credentials: 'include',
       })
 
       results.push(`${config.public.tyangeCmsApiBase}${res.data.image_path}`)

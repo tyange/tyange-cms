@@ -15,6 +15,7 @@ async function handleSubmit() {
         user_id: enteredId.value,
         password: enteredPassword.value,
       },
+      credentials: 'include',
     })
 
     if (res) {
