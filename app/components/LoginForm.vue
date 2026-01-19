@@ -10,6 +10,7 @@ const authStore = useAuthStore()
 async function handleSubmit() {
   try {
     const res = await $fetch<AuthResponse>(`/api/login`, {
+      method: 'POST',
       body: {
         user_id: enteredId.value,
         password: enteredPassword.value,

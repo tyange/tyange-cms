@@ -60,6 +60,7 @@ async function handleSubmitPost() {
     }
 
     const res = await $fetch<CMSResponse<PostListItem>>(`/api/post/upload`, {
+      method: 'POST',
       body: post,
       headers: {
         Authorization: authObject.value.accessToken,
@@ -97,7 +98,8 @@ async function handleEditPost() {
       status: status.value,
     }
 
-    const res = await $fetch<CMSResponse<PostListItem>>(`${config.public.tyangeCmsApiBase}/post/update/${postId.value}`, {
+    const res = await $fetch<CMSResponse<PostListItem>>(`/api/post/update?id=${postId.value}`, {
+      method: 'PUT',
       body: post,
       headers: {
         Authorization: authObject.value.accessToken,
@@ -131,11 +133,11 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await $fetch<CMSResponse<{ image_path: string }>>(`${config.public.tyangeCmsApiBase}/upload-image?post_id=${postId.value}`, {
+      const res = await $fetch<CMSResponse<{ image_path: string }>>(`/api/upload-image?id=${postId.value}`, {
+        method: 'POST',
         headers: {
           Authorization: authObject.value.accessToken,
         },
-        method: 'POST',
         body: formData,
       })
 

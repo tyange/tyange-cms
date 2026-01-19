@@ -24,6 +24,7 @@ async function handleDeletePost(postId: string) {
 
   try {
     const res = await $fetch<CMSResponse<{ post_id: string }>>(`/api/post/delete?id=${postId}`, {
+      method: 'DELETE',
       headers: {
         Authorization: authObject.value.accessToken,
       },
