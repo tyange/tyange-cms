@@ -13,6 +13,7 @@ const authObject = useCookie<AuthStore>('auth')
 const { data, refresh } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`/api/posts`, {
   headers: { Authorization: authObject.value!.accessToken! },
   credentials: 'include',
+  server: false,
 })
 
 const postList = computed(() => data.value?.data.posts ?? [])
