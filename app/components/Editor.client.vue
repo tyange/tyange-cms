@@ -146,7 +146,7 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
       const formData = new FormData()
       formData.append('file', compressedFile)
 
-      const res = await $fetch<CMSResponse<{ image_path: string }>>(`/api/upload-image?id=${postId.value}`, {
+      const res = await $fetch<CMSResponse<{ image_path: string }>>(`/api/post/upload-image?id=${postId.value}`, {
         method: 'POST',
         headers: {
           Authorization: authObject.value.accessToken,
