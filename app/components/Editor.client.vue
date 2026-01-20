@@ -3,6 +3,7 @@ import type { AuthStore } from '~/types/auth-store.types'
 import type { PostListItem } from '~/types/post-list-item.types'
 import type { CMSResponse } from '~/types/response.types'
 import KO_KR from '@vavt/cm-extension/dist/locale/ko-KR'
+import imageCompression from 'browser-image-compression'
 import { X } from 'lucide-vue-next'
 import { MdEditor, config as MdEditorConfig } from 'md-editor-v3'
 import { POST_STATUS } from '~/constants/post-status.constant'
@@ -132,8 +133,18 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
     const results = []
 
     for (const file of files) {
+      const options = {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: 'image/jpeg',
+        initialQuality: 0.85,
+      }
+
+      const compressedFile = await imageCompression(file, options)
+
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', compressedFile)
 
       const res = await $fetch<CMSResponse<{ image_path: string }>>(`/api/upload-image?id=${postId.value}`, {
         method: 'POST',

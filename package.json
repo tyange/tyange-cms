@@ -17,6 +17,7 @@
     "@pinia/nuxt": "^0.11.1",
     "@tailwindcss/vite": "^4.1.10",
     "@vavt/cm-extension": "^1.10.1",
+    "browser-image-compression": "^2.0.2",
     "install": "^0.13.0",
     "lucide-vue-next": "^0.522.0",
     "md-editor-v3": "^5.7.1",
