@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   if (authHeader) {
     headers.append('Authorization', authHeader)
   }
-  headers.append('content-type', 'application/json')
+  headers.append('Content-Type', 'application/json')
 
   return await $fetch(`${config.public.tyangeCmsApiBase}/post/upload`, {
     method: 'POST',
