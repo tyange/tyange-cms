@@ -5,6 +5,8 @@ export default defineEventHandler(async (event) => {
   const postId = query.id
 
   const body = await readBody(event)
+  const formData = new FormData()
+  formData.append('file', body)
 
   const authHeader = getRequestHeader(event, 'Authorization')
   const headers = new Headers()
@@ -17,6 +19,6 @@ export default defineEventHandler(async (event) => {
   return await $fetch(`${config.public.tyangeCmsApiBase}/upload-image?post_id=${postId}`, {
     method: 'POST',
     headers,
-    body,
+    body: formData,
   })
 })

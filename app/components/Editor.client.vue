@@ -149,11 +149,10 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
       const res = await $fetch<CMSResponse<{ image_path: string }>>(`/api/post/upload-image?id=${postId.value}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'multipart/form-data',
           'Authorization': authObject.value.accessToken,
+          'Content-Type': 'multipart/form-data',
         },
         body: formData,
-        credentials: 'include',
       })
 
       results.push(`${config.public.tyangeCmsApiBase}${res.data.image_path}`)
