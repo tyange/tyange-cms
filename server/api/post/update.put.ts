@@ -11,7 +11,6 @@ export default defineEventHandler(async (event) => {
   if (authHeader) {
     headers.append('Authorization', authHeader)
   }
-  headers.append('Content-Type', 'application/json')
 
   return await $fetch(`${config.public.tyangeCmsApiBase}/post/update/${postId}`, {
     method: 'PUT',

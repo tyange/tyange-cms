@@ -149,8 +149,7 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
       const res = await $fetch<CMSResponse<{ image_path: string }>>(`/api/post/upload-image?id=${postId.value}`, {
         method: 'POST',
         headers: {
-          'Authorization': authObject.value.accessToken,
-          'Content-Type': 'multipart/form-data',
+          Authorization: authObject.value.accessToken,
         },
         body: formData,
       })
