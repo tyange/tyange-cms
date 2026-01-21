@@ -152,6 +152,7 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
           'Content-Type': 'multipart/form-data',
           'Authorization': authObject.value.accessToken,
         },
+        body: formData,
         credentials: 'include',
       })
 
