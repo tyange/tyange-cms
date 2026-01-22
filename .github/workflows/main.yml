@@ -51,5 +51,6 @@ jobs:
           key: ${{ secrets.PRIVATE_SSH_KEY }}
           script: |
             cd ${{ vars.DEPLOY_PATH }}
-            /home/ubuntu/.local/share/pnpm/pm2 restart tyange-cms || /home/ubuntu/.local/share/pnpm/pm2 start ecosystem.config.js
+            /home/ubuntu/.local/share/pnpm/pm2 delete tyange-cms || true
+            /home/ubuntu/.local/share/pnpm/pm2 start ecosystem.config.js
             /home/ubuntu/.local/share/pnpm/pm2 save
