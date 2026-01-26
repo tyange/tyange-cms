@@ -4,7 +4,7 @@ import type { PostListItem } from '~/types/post-list-item.types'
 import type { CMSResponse } from '~/types/response.types'
 import KO_KR from '@vavt/cm-extension/dist/locale/ko-KR'
 import imageCompression from 'browser-image-compression'
-import { X } from 'lucide-vue-next'
+import { CirclePlus, X } from 'lucide-vue-next'
 import { MdEditor, config as MdEditorConfig } from 'md-editor-v3'
 import { POST_STATUS } from '~/constants/post-status.constant'
 import 'md-editor-v3/lib/style.css'
@@ -196,7 +196,14 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[] |
             <X class="h-lh" :size="15" />
           </button>
         </div>
-        <input v-model="enteredTag" type="text" class="input" @keydown.enter="handleSubmitTag">
+        <div class="join">
+          <label class="input join-item">
+            <input v-model="enteredTag" type="text" class="input" @keydown.enter="handleSubmitTag">
+          </label>
+          <button class="ml-3" @click="handleSubmitTag">
+            <CirclePlus />
+          </button>
+        </div>
       </div>
     </fieldset>
     <div class="mb-5 flex justify-between">
