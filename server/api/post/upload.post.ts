@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig(event)
 
   const body = await readBody(event)
   const authHeader = getRequestHeader(event, 'Authorization')
