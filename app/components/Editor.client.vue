@@ -55,7 +55,7 @@ async function handleSubmitPost() {
       title: enteredTitle.value,
       description: enteredDescription.value,
       published_at: enteredPublishedAt.value,
-      tags: enteredTags.value.join(','),
+      tags: enteredTags.value,
       content: enteredContent.value,
       status: status.value,
     }
@@ -95,7 +95,7 @@ async function handleEditPost() {
       title: enteredTitle.value,
       description: enteredDescription.value,
       published_at: enteredPublishedAt.value,
-      tags: enteredTags.value.join(','),
+      tags: enteredTags.value,
       content: enteredContent.value,
       status: status.value,
     }
