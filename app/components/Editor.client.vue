@@ -47,7 +47,6 @@ async function handleSubmitPost() {
     const post = {
       title: enteredTitle.value,
       description: enteredDescription.value,
-      // 중요: CalendarDate 객체를 문자열(YYYY-MM-DD)로 변환하여 전송
       published_at: enteredPublishedAt.value.toString(),
       tags: enteredTags.value,
       content: enteredContent.value,
@@ -77,7 +76,6 @@ async function handleEditPost() {
       post_id: postId.value,
       title: enteredTitle.value,
       description: enteredDescription.value,
-      // 중요: 문자열로 변환
       published_at: enteredPublishedAt.value.toString(),
       tags: enteredTags.value,
       content: enteredContent.value,
@@ -98,7 +96,6 @@ async function handleEditPost() {
   }
 }
 
-// 이미지 업로드 핸들러 (기존 로직 유지)
 async function handleUploadImage(files: Array<File>, callback: (urls: string[]) => void) {
   if (!authObject.value?.accessToken || !postId.value)
     return
@@ -124,23 +121,31 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
 </script>
 
 <template>
-  <div class="space-y-4">
-    <UFormField label="TITLE">
-      <UInput v-model="enteredTitle" class="w-full" />
-    </UFormField>
+  <div class="space-y-6 p-5">
+    <div class="space-y-4">
+      <UFormField label="TITLE" class="w-full">
+        <UInput v-model="enteredTitle" class="w-full" />
+      </UFormField>
 
-    <UFormField label="DESCRIPTION">
-      <UInput v-model="enteredDescription" class="w-full" />
-    </UFormField>
+      <UFormField label="DESCRIPTION" class="w-full">
+        <UInput v-model="enteredDescription" class="w-full" />
+      </UFormField>
+    </div>
 
-    <UFormField label="PUBLISHED AT">
-      <UInputDate v-model="enteredPublishedAt" type="date" format="yyyy-MM-dd" />
-    </UFormField>
+    <div class="flex flex-wrap items-end gap-4">
+      <UFormField label="PUBLISHED AT">
+        <UInputDate v-model="enteredPublishedAt" type="date" format="yyyy-MM-dd" />
+      </UFormField>
 
-    <div class="flex justify-between items-center mt-6">
-      <USelect v-model="status" :items="Object.values(POST_STATUS)" />
+      <UFormField label="STATUS">
+        <USelect
+          v-model="status"
+          :items="Object.values(POST_STATUS)"
+          class="w-36"
+        />
+      </UFormField>
 
-      <div class="space-x-2">
+      <div class="ml-auto">
         <UButton v-if="!postId" color="primary" @click="handleSubmitPost">
           CREATE
         </UButton>
@@ -150,8 +155,6 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
       </div>
     </div>
 
-    <div class="mt-4">
-      <MdEditor v-model="enteredContent" language="ko-KR" @on-upload-img="handleUploadImage" />
-    </div>
+    <MdEditor v-model="enteredContent" language="ko-KR" @on-upload-img="handleUploadImage" />
   </div>
 </template>

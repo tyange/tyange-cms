@@ -7,7 +7,7 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="flex-1 flex justify-center items-center">
+  <div>
     <NotReadyYet />
   </div>
 </template>

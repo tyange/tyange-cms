@@ -10,13 +10,14 @@ definePageMeta({
 
 const authObject = useCookie<AuthStore>('auth')
 
-const { data, refresh } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`/api/posts`, {
+const { data, refresh, status } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`/api/posts`, {
   headers: { Authorization: authObject.value!.accessToken! },
   credentials: 'include',
   server: false,
 })
 
 const postList = computed(() => data.value?.data.posts ?? [])
+const isLoading = computed(() => status.value === 'pending')
 
 async function handleDeletePost(postId: string) {
   if (!authObject.value?.accessToken) {
@@ -27,9 +28,7 @@ async function handleDeletePost(postId: string) {
   try {
     const res = await $fetch<CMSResponse<{ post_id: string }>>(`/api/post/delete?id=${postId}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: authObject.value.accessToken,
-      },
+      headers: { Authorization: authObject.value.accessToken },
       credentials: 'include',
     })
 
@@ -44,72 +43,69 @@ async function handleDeletePost(postId: string) {
 </script>
 
 <template>
-  <div class="w-full h-full">
-    <ul v-if="postList.length > 0" class="w-full h-full p-10 flex flex-col items-center space-y-6">
-      <li
-        v-for="post in postList" :key="post.post_id"
-        class="w-full max-w-3xl bg-gray-800/50 border border-gray-700 shadow-lg rounded-2xl p-6 text-gray-300 transition-all duration-300 backdrop-blur-sm relative"
-      >
-        <button class="btn btn-warning absolute -right-24 top-0" @click="handleDeletePost(post.post_id)">
-          DELETE
-        </button>
-        <NuxtLink :to="`/managing-blog/update/${post.post_id}`">
-          <div class="flex flex-col gap-6 relative">
-            <div>
-              <label class="text-xs text-gray-500 font-medium mb-2 block">
-                TITLE
-              </label>
-              <h2 class="text-xl font-semibold text-white leading-tight break-words">
-                {{ post.title }}
-              </h2>
+  <div class="px-6 py-4 max-w-4xl mx-auto space-y-3">
+    <template v-if="isLoading">
+      <UCard v-for="i in 5" :key="i">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1 space-y-2">
+            <USkeleton class="h-5 w-1/3" />
+            <USkeleton class="h-4 w-2/3" />
+            <div class="flex gap-4">
+              <USkeleton class="h-3 w-24" />
+              <USkeleton class="h-3 w-24" />
             </div>
-            <div>
-              <label class="text-xs text-gray-500 font-medium mb-2 block">
-                DESCRIPTION
-              </label>
-              <p class="text-base text-gray-300">
-                {{ post.description }}
-              </p>
-            </div>
-            <div class="grid grid-cols-2 gap-x-8 gap-y-6">
-              <div>
-                <label class="text-xs text-gray-500 font-medium mb-2 block">
-                  POST ID
-                </label>
-                <span class="text-base text-gray-300">
-                  {{ post.post_id }}
-                </span>
-              </div>
-              <div>
-                <label class="text-xs text-gray-500 font-medium mb-2 block">
-                  PUBLISHED
-                </label>
-                <time class="text-base text-gray-300">
-                  {{ post.published_at }}
-                </time>
-              </div>
-            </div>
-            <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-2">
-              <label class="text-xs text-gray-500 font-medium w-full mb-2">
-                TAGS
-              </label>
-              <span
-                v-for="tag in post.tags" :key="tag"
-                class="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-full border border-gray-600"
-              >
-                {{ tag }}
-              </span>
+            <div class="flex gap-1">
+              <USkeleton v-for="j in 3" :key="j" class="h-5 w-12 rounded-full" />
             </div>
           </div>
+          <USkeleton class="h-8 w-8 rounded-md" />
+        </div>
+      </UCard>
+    </template>
+
+    <template v-else-if="postList.length > 0">
+      <UCard
+        v-for="post in postList"
+        :key="post.post_id"
+        :ui="{ body: 'flex items-start justify-between gap-4' }"
+      >
+        <NuxtLink :to="`/managing-blog/update/${post.post_id}`" class="flex-1 min-w-0 space-y-2">
+          <h2 class="font-semibold truncate">
+            {{ post.title }}
+          </h2>
+          <p class="text-sm text-muted truncate">
+            {{ post.description }}
+          </p>
+          <div class="flex items-center gap-4 text-xs text-muted">
+            <span class="font-mono">{{ post.post_id }}</span>
+            <time>{{ post.published_at }}</time>
+          </div>
+          <div v-if="post.tags?.length" class="flex flex-wrap gap-1">
+            <UBadge
+              v-for="tag in post.tags"
+              :key="tag"
+              variant="subtle"
+              size="sm"
+            >
+              {{ tag }}
+            </UBadge>
+          </div>
         </NuxtLink>
-      </li>
-    </ul>
-    <div v-else class="flex items-center justify-center h-64">
-      <p class="text-gray-500 text-lg">
-        No posts available
-      </p>
-    </div>
+
+        <UButton
+          color="error"
+          variant="ghost"
+          icon="i-lucide-trash"
+          size="sm"
+          @click.prevent="handleDeletePost(post.post_id)"
+        />
+      </UCard>
+    </template>
+
+    <UEmpty
+      v-else
+      icon="i-lucide-inbox"
+      label="No posts available"
+    />
   </div>
 </template>
-
-<style scoped></style>

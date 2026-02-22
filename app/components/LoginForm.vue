@@ -30,32 +30,17 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <form
-    class="flex gap-5 flex-col"
-    @submit.prevent="handleSubmit"
-  >
-    <label class="input w-full">
-      <span class="label">ID</span>
-      <input
-        v-model="enteredId"
-        type="text"
-      >
-    </label>
-    <label class="input w-full">
-      <span class="label">PW</span>
-      <input
-        v-model="enteredPassword"
-        type="password"
-        class="input"
-      >
-    </label>
-    <button
-      type="submit"
-      class="btn"
-    >
-      로그인
-    </button>
-  </form>
+  <UForm class="space-y-4" @submit="handleSubmit">
+    <UFormField label="ID" name="id">
+      <UInput v-model="enteredId" />
+    </UFormField>
+    <UFormField label="Password" name="password">
+      <UInput v-model="enteredPassword" type="password" />
+    </UFormField>
+    <UButton type="submit">
+      Submit
+    </UButton>
+  </UForm>
 </template>
 
 <style scoped></style>

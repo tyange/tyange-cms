@@ -1,26 +1,32 @@
 <script setup lang="ts">
-import { Menu } from 'lucide-vue-next'
+import type { NavigationMenuItem } from '@nuxt/ui'
 
-defineEmits<{ (e: 'handleOpenDrawer'): void }>()
+const route = useRoute()
+
+const items = computed<NavigationMenuItem[]>(() =>
+  [
+    {
+      label: '포스트 목록',
+      to: '/managing-blog',
+      active: route.path === '/managing-blog',
+    },
+    {
+      label: '새 글 쓰기',
+      to: '/managing-blog/create',
+      active: route.path === '/managing-blog/create',
+    },
+  ],
+
+)
 </script>
 
 <template>
-  <header>
-    <div class="navbar bg-base-100 shadow-sm">
-      <div class="flex flex-none">
-        <button
-          class="btn drawer-button btn-square btn-ghost"
-          @click="$emit('handleOpenDrawer')"
-        >
-          <Menu />
-        </button>
-        <div class="flex-1">
-          <a class="btn btn-ghost text-xl">tyange-cms</a>
-        </div>
-        <div class="flex-none" />
-      </div>
-    </div>
-  </header>
+  <UHeader title="tyange-cms">
+    <UNavigationMenu :items="items" />
+    <template #body>
+      <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
+    </template>
+  </UHeader>
 </template>
 
 <style scoped></style>

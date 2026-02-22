@@ -3,11 +3,11 @@ import { Clock } from 'lucide-vue-next'
 </script>
 
 <template>
-  <div class="text-center px-6 py-12 max-w-md">
-    <div class="mb-8 w-full flex justify-center">
+  <div>
+    <div>
       <Clock :size="50" />
     </div>
-    <h1 class="text-3xl font-bold">
+    <h1>
       아직 준비 중입니다.
     </h1>
   </div>
