@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
     '@nuxt/eslint',
+    '@nuxt/ui',
   ],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
@@ -21,7 +22,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       tyangeCmsApiBase: '',
-      tyangeCmsApiBaseProd: '',
     },
   },
   devServer: {
