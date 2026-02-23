@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AuthStore } from '~/types/auth-store.types'
-import type { PostListItem, TagWithCategory } from '~/types/editor.types'
+import type { PostListItem, Tag, TagWithCategory } from '~/types/editor.types'
 import type { CMSResponse } from '~/types/response.types'
 import { CalendarDate } from '@internationalized/date'
 import KO_KR from '@vavt/cm-extension/dist/locale/ko-KR'
@@ -33,9 +33,19 @@ const initialDate = publishedAtProps.value
   : new CalendarDate(getYear(currentDate), getMonth(currentDate) + 1, getDate(currentDate))
 
 const enteredPublishedAt = shallowRef(initialDate)
-const enteredTags = ref<string[]>(props.data?.tags ?? [])
+const enteredTags = ref<Tag[]>(props.data?.tags ?? [])
 const enteredContent = ref(props.data?.content ?? '')
 const status = ref<POST_STATUS>(props.data?.status ?? POST_STATUS.DRAFT)
+
+function getTagsForCategory(category: string): string[] {
+  return enteredTags.value.filter(t => t.category === category).map(t => t.tag)
+}
+
+function setTagsForCategory(category: string, selected: string[]) {
+  const otherTags = enteredTags.value.filter(t => t.category !== category)
+  const newTags = selected.map(tag => ({ tag, category }))
+  enteredTags.value = [...otherTags, ...newTags]
+}
 
 const { data: tagCategories } = await useFetch<CMSResponse<TagWithCategory[]>>('/api/tags-with-category')
 
@@ -118,6 +128,7 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
     console.error('Upload Error:', error)
   }
 }
+
 </script>
 
 <template>
@@ -135,10 +146,11 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
         <div v-for="category in tagCategories.data" :key="category.category">
           <p>{{ category.category }}</p>
           <UInputMenu
-            v-model="enteredTags"
             multiple
+            :model-value="getTagsForCategory(category.category)"
             :items="category.tags"
             placeholder="태그 검색..."
+            @update:model-value="(val: string[]) => setTagsForCategory(category.category, val)"
           />
         </div>
       </UFormField>
