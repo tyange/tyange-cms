@@ -134,7 +134,12 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
       <UFormField v-if="tagCategories && tagCategories.data" label="TAGS">
         <div v-for="category in tagCategories.data" :key="category.category">
           <p>{{ category.category }}</p>
-          <UInputTags autocomplete="on" />
+          <UInputMenu
+            v-model="enteredTags"
+            multiple
+            :items="category.tags"
+            placeholder="태그 검색..."
+          />
         </div>
       </UFormField>
     </div>
