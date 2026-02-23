@@ -9,3 +9,8 @@ export interface PostListItem {
   content: string
   status: POST_STATUS
 }
+
+export interface TagWithCategory {
+  category: string
+  tags: string[]
+}

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AuthStore } from '~/types/auth-store.types'
-import type { PostListItem } from '~/types/post-list-item.types'
+import type { PostListItem, TagWithCategory } from '~/types/editor.types'
 import type { CMSResponse } from '~/types/response.types'
 import { CalendarDate } from '@internationalized/date'
 import KO_KR from '@vavt/cm-extension/dist/locale/ko-KR'
@@ -37,7 +37,7 @@ const enteredTags = ref<string[]>(props.data?.tags ?? [])
 const enteredContent = ref(props.data?.content ?? '')
 const status = ref<POST_STATUS>(props.data?.status ?? POST_STATUS.DRAFT)
 
-const { data: tagCategories } = await useFetch('/api/tags-with-category')
+const { data: tagCategories } = await useFetch<CMSResponse<TagWithCategory[]>>('/api/tags-with-category')
 
 async function handleSubmitPost() {
   if (!authObject.value?.accessToken)
@@ -121,14 +121,21 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
 </script>
 
 <template>
-  <div class="space-y-6 p-5">
+  <div class="space-y-6">
     <div class="space-y-4">
-      <UFormField label="TITLE" class="w-full">
-        <UInput v-model="enteredTitle" class="w-full" />
+      <UFormField label="TITLE">
+        <UInput v-model="enteredTitle" />
       </UFormField>
 
-      <UFormField label="DESCRIPTION" class="w-full">
-        <UInput v-model="enteredDescription" class="w-full" />
+      <UFormField label="DESCRIPTION">
+        <UInput v-model="enteredDescription" />
+      </UFormField>
+
+      <UFormField v-if="tagCategories && tagCategories.data" label="TAGS">
+        <div v-for="category in tagCategories.data" :key="category.category">
+          <p>{{ category.category }}</p>
+          <UInputTags autocomplete="on" />
+        </div>
       </UFormField>
     </div>
 
@@ -145,7 +152,7 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
         />
       </UFormField>
 
-      <div class="ml-auto">
+      <div>
         <UButton v-if="!postId" color="primary" @click="handleSubmitPost">
           CREATE
         </UButton>

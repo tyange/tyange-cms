@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AuthStore } from '~/types/auth-store.types'
-import type { PostListItem } from '~/types/post-list-item.types'
+import type { PostListItem } from '~/types/editor.types'
 import type { CMSResponse } from '~/types/response.types'
 
 definePageMeta({
@@ -43,7 +43,7 @@ async function handleDeletePost(postId: string) {
 </script>
 
 <template>
-  <div class="px-6 py-4 max-w-4xl mx-auto space-y-3">
+  <div class="space-y-3">
     <template v-if="isLoading">
       <UCard v-for="i in 5" :key="i">
         <div class="flex items-start justify-between gap-4">
