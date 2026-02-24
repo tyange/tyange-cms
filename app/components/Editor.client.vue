@@ -37,9 +37,15 @@ const enteredTags = ref<Tag[]>(props.data?.tags ?? [])
 const enteredContent = ref(props.data?.content ?? '')
 const status = ref<POST_STATUS>(props.data?.status ?? POST_STATUS.DRAFT)
 
-function getTagsForCategory(category: string): string[] {
-  return enteredTags.value.filter(t => t.category === category).map(t => t.tag)
-}
+const tagsByCategory = computed(() => {
+  const map = new Map<string, string[]>()
+  for (const t of enteredTags.value) {
+    const arr = map.get(t.category) || []
+    arr.push(t.tag)
+    map.set(t.category, arr)
+  }
+  return map
+})
 
 function setTagsForCategory(category: string, selected: string[]) {
   const otherTags = enteredTags.value.filter(t => t.category !== category)
@@ -128,7 +134,6 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
     console.error('Upload Error:', error)
   }
 }
-
 </script>
 
 <template>
@@ -147,7 +152,7 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
           <p>{{ category.category }}</p>
           <UInputMenu
             multiple
-            :model-value="getTagsForCategory(category.category)"
+            :model-value="tagsByCategory.get(category.category) ?? []"
             :items="category.tags"
             placeholder="태그 검색..."
             @update:model-value="(val: string[]) => setTagsForCategory(category.category, val)"
