@@ -83,11 +83,11 @@ async function handleDeletePost(postId: string) {
           <div v-if="post.tags?.length" class="flex flex-wrap gap-1">
             <UBadge
               v-for="tag in post.tags"
-              :key="tag"
+              :key="tag.tag"
               variant="subtle"
               size="sm"
             >
-              {{ tag }}
+              {{ tag.tag }}
             </UBadge>
           </div>
         </NuxtLink>
