@@ -47,12 +47,21 @@ const tagsByCategory = computed(() => {
   return map
 })
 
+const inputMenuRefs = ref<Record<string, any>>({})
+
 function setTagsForCategory(category: string, selected: string[]) {
   const otherTags = enteredTags.value.filter(t => t.category !== category)
   const newTags = selected.map(tag => ({ tag, category }))
   enteredTags.value = [...otherTags, ...newTags]
-}
 
+  nextTick(() => {
+    const inputEl = inputMenuRefs.value[category]?.inputRef
+    if (inputEl) {
+      inputEl.value = ''
+      inputEl.dispatchEvent(new Event('input'))
+    }
+  })
+}
 const { data: tagCategories } = await useFetch<CMSResponse<TagWithCategory[]>>('/api/tags-with-category')
 
 async function handleSubmitPost() {
@@ -151,11 +160,14 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
         <div v-for="category in tagCategories.data" :key="category.category">
           <p>{{ category.category }}</p>
           <UInputMenu
+            :ref="(el: any) => inputMenuRefs[category.category] = el"
             multiple
+            create-item
             :model-value="tagsByCategory.get(category.category) ?? []"
             :items="category.tags"
             placeholder="태그 검색..."
             @update:model-value="(val: string[]) => setTagsForCategory(category.category, val)"
+            @create="(item: string) => setTagsForCategory(category.category, [...(tagsByCategory.get(category.category) ?? []), item])"
           />
         </div>
       </UFormField>
