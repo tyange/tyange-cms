@@ -20,6 +20,11 @@ const items = computed<NavigationMenuItem[]>(() =>
       to: '/managing-spending',
       active: route.path === '/managing-spending',
     },
+    {
+      label: '주간 예산 책정',
+      to: '/managing-budget',
+      active: route.path === '/managing-budget',
+    },
   ],
 
 )
