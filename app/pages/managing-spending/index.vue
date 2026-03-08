@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { AuthStore } from '~/types/auth-store.types'
 import type { SpendingListResponse, SpendingRecord, UpsertSpendingRequest } from '~/types/spending.types'
 
 definePageMeta({
@@ -7,13 +6,51 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const authObject = useCookie<AuthStore>('auth')
+const authStore = useAuthStore()
 
 const weekInput = ref('')
 const appliedWeek = ref('')
 const submitError = ref('')
 const isSubmitting = ref(false)
 const editingId = ref<number | null>(null)
+
+function getErrorMessage(error: unknown, fallback: string) {
+  const fetchError = error as {
+    data?: { message?: string } | string
+    statusCode?: number
+    statusMessage?: string
+  }
+
+  if (fetchError?.statusCode === 401) {
+    return '로그인이 만료되었습니다. 다시 로그인해 주세요.'
+  }
+
+  if (fetchError?.statusCode === 403) {
+    return '이 계정은 소비 관리 권한이 없습니다.'
+  }
+
+  if (fetchError?.statusCode === 404) {
+    return '해당 주차에 설정된 예산이 없거나 소비 기록을 찾을 수 없습니다.'
+  }
+
+  if (typeof fetchError?.data === 'string' && fetchError.data) {
+    return fetchError.data
+  }
+
+  if (fetchError?.data && typeof fetchError.data === 'object' && 'message' in fetchError.data && typeof fetchError.data.message === 'string') {
+    return fetchError.data.message
+  }
+
+  if (fetchError?.statusMessage) {
+    return fetchError.statusMessage
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  return fallback
+}
 
 const createForm = reactive({
   amount: '',
@@ -36,12 +73,12 @@ function getCurrentDateTimeLocal() {
 createForm.transactedAt = getCurrentDateTimeLocal()
 
 const authHeaders = computed(() => {
-  if (!authObject.value?.accessToken) {
+  if (!authStore.accessToken) {
     return {}
   }
 
   return {
-    Authorization: authObject.value.accessToken,
+    Authorization: authStore.accessToken,
   }
 })
 
@@ -55,7 +92,7 @@ const weekQuery = computed(() => {
   }
 })
 
-const { data, status, refresh } = await useFetch<SpendingListResponse>('/api/spending', {
+const { data, status, refresh, error } = await useFetch<SpendingListResponse>('/api/spending', {
   query: weekQuery,
   headers: authHeaders,
   credentials: 'include',
@@ -65,6 +102,7 @@ const { data, status, refresh } = await useFetch<SpendingListResponse>('/api/spe
 const records = computed(() => data.value?.records ?? [])
 const weekKey = computed(() => data.value?.week_key ?? '-')
 const isLoading = computed(() => status.value === 'pending')
+const loadErrorMessage = computed(() => error.value ? getErrorMessage(error.value, '소비 목록을 불러오지 못했습니다.') : '')
 
 function normalizeDateTimeForInput(value: string) {
   return value.replace(' ', 'T').slice(0, 16)
@@ -111,7 +149,7 @@ function cancelEdit() {
 }
 
 async function createSpending() {
-  if (!authObject.value?.accessToken) {
+  if (!authStore.accessToken) {
     submitError.value = '로그인 정보가 없습니다.'
     return
   }
@@ -150,7 +188,7 @@ async function createSpending() {
     await refresh()
   }
   catch (error: unknown) {
-    submitError.value = error instanceof Error ? error.message : '소비 추가에 실패했습니다.'
+    submitError.value = getErrorMessage(error, '소비 추가에 실패했습니다.')
   }
   finally {
     isSubmitting.value = false
@@ -158,7 +196,7 @@ async function createSpending() {
 }
 
 async function updateSpending(recordId: number) {
-  if (!authObject.value?.accessToken) {
+  if (!authStore.accessToken) {
     submitError.value = '로그인 정보가 없습니다.'
     return
   }
@@ -195,7 +233,7 @@ async function updateSpending(recordId: number) {
     await refresh()
   }
   catch (error: unknown) {
-    submitError.value = error instanceof Error ? error.message : '소비 수정에 실패했습니다.'
+    submitError.value = getErrorMessage(error, '소비 수정에 실패했습니다.')
   }
   finally {
     isSubmitting.value = false
@@ -207,7 +245,7 @@ async function deleteSpending(recordId: number) {
     return
   }
 
-  if (!authObject.value?.accessToken) {
+  if (!authStore.accessToken) {
     submitError.value = '로그인 정보가 없습니다.'
     return
   }
@@ -229,7 +267,7 @@ async function deleteSpending(recordId: number) {
     await refresh()
   }
   catch (error: unknown) {
-    submitError.value = error instanceof Error ? error.message : '소비 삭제에 실패했습니다.'
+    submitError.value = getErrorMessage(error, '소비 삭제에 실패했습니다.')
   }
   finally {
     isSubmitting.value = false
@@ -285,6 +323,9 @@ async function deleteSpending(recordId: number) {
             <p class="text-sm text-muted">
               조회 주차: {{ weekKey }}
             </p>
+            <p class="text-xs text-muted">
+              로그인한 계정 기준 소비 데이터만 조회됩니다.
+            </p>
           </div>
           <div class="flex gap-2">
             <UInput
@@ -301,9 +342,14 @@ async function deleteSpending(recordId: number) {
         </div>
       </template>
 
-      <p v-if="submitError" class="text-sm text-error mb-3">
-        {{ submitError }}
-      </p>
+      <UAlert
+        v-if="submitError || loadErrorMessage"
+        class="mb-3"
+        color="error"
+        variant="subtle"
+        title="소비 데이터를 처리하지 못했습니다."
+        :description="submitError || loadErrorMessage"
+      />
 
       <template v-if="isLoading">
         <div class="space-y-2">
@@ -311,7 +357,7 @@ async function deleteSpending(recordId: number) {
         </div>
       </template>
 
-      <template v-else-if="records.length > 0">
+      <template v-else-if="!loadErrorMessage && records.length > 0">
         <div class="space-y-3">
           <UCard
             v-for="record in records"
@@ -383,7 +429,7 @@ async function deleteSpending(recordId: number) {
       </template>
 
       <UEmpty
-        v-else
+        v-else-if="!loadErrorMessage"
         icon="i-lucide-receipt"
         label="선택한 주차에 소비 기록이 없습니다."
       />

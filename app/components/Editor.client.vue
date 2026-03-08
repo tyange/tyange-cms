@@ -27,6 +27,8 @@ const currentDate = new Date()
 const postId = ref<string | null>(props.data?.post_id ?? null)
 const enteredTitle = ref(props.data?.title ?? '')
 const enteredDescription = ref(props.data?.description ?? '')
+const submitError = ref('')
+const isSubmitting = ref(false)
 
 const initialDate = publishedAtProps.value
   ? new CalendarDate(Number(publishedAtProps.value[0]), Number(publishedAtProps.value[1]), Number(publishedAtProps.value[2]))
@@ -64,9 +66,48 @@ function setTagsForCategory(category: string, selected: string[]) {
 }
 const { data: tagCategories } = await useFetch<CMSResponse<TagWithCategory[]>>('/api/tags-with-category')
 
+function getErrorMessage(error: unknown, fallback: string) {
+  const fetchError = error as {
+    data?: { message?: string } | string
+    statusCode?: number
+    statusMessage?: string
+  }
+
+  if (fetchError?.statusCode === 401) {
+    return '로그인이 만료되었습니다. 다시 로그인해 주세요.'
+  }
+
+  if (fetchError?.statusCode === 403) {
+    return '관리자만 포스트를 수정할 수 있습니다.'
+  }
+
+  if (typeof fetchError?.data === 'string' && fetchError.data) {
+    return fetchError.data
+  }
+
+  if (fetchError?.data && typeof fetchError.data === 'object' && 'message' in fetchError.data && typeof fetchError.data.message === 'string') {
+    return fetchError.data.message
+  }
+
+  if (fetchError?.statusMessage) {
+    return fetchError.statusMessage
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  return fallback
+}
+
 async function handleSubmitPost() {
-  if (!authObject.value?.accessToken)
+  if (!authObject.value?.accessToken) {
+    submitError.value = '로그인 정보가 없습니다.'
     return
+  }
+
+  submitError.value = ''
+  isSubmitting.value = true
 
   try {
     const post = {
@@ -87,14 +128,22 @@ async function handleSubmitPost() {
     if (res.status)
       await navigateTo('/managing-blog')
   }
-  catch (err) {
-    console.error(err)
+  catch (err: unknown) {
+    submitError.value = getErrorMessage(err, '포스트 생성에 실패했습니다.')
+  }
+  finally {
+    isSubmitting.value = false
   }
 }
 
 async function handleEditPost() {
-  if (!authObject.value?.accessToken || !postId.value)
+  if (!authObject.value?.accessToken || !postId.value) {
+    submitError.value = '로그인 정보가 없거나 수정 대상 포스트를 찾을 수 없습니다.'
     return
+  }
+
+  submitError.value = ''
+  isSubmitting.value = true
 
   try {
     const post = {
@@ -116,14 +165,19 @@ async function handleEditPost() {
     if (res.status)
       await navigateTo('/managing-blog')
   }
-  catch (err) {
-    console.error(err)
+  catch (err: unknown) {
+    submitError.value = getErrorMessage(err, '포스트 수정에 실패했습니다.')
+  }
+  finally {
+    isSubmitting.value = false
   }
 }
 
 async function handleUploadImage(files: Array<File>, callback: (urls: string[]) => void) {
-  if (!authObject.value?.accessToken || !postId.value)
+  if (!authObject.value?.accessToken || !postId.value) {
+    submitError.value = '이미지 업로드 전 포스트를 먼저 저장해 주세요.'
     return
+  }
   try {
     const results = []
     for (const file of files) {
@@ -139,14 +193,22 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
     }
     callback(results)
   }
-  catch (error) {
-    console.error('Upload Error:', error)
+  catch (error: unknown) {
+    submitError.value = getErrorMessage(error, '이미지 업로드에 실패했습니다.')
   }
 }
 </script>
 
 <template>
   <div class="space-y-6">
+    <UAlert
+      v-if="submitError"
+      color="error"
+      variant="subtle"
+      title="요청을 처리하지 못했습니다."
+      :description="submitError"
+    />
+
     <div class="space-y-4">
       <UFormField label="TITLE">
         <UInput v-model="enteredTitle" />
@@ -187,10 +249,10 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
       </UFormField>
 
       <div>
-        <UButton v-if="!postId" color="primary" @click="handleSubmitPost">
+        <UButton v-if="!postId" color="primary" :loading="isSubmitting" @click="handleSubmitPost">
           CREATE
         </UButton>
-        <UButton v-else color="primary" @click="handleEditPost">
+        <UButton v-else color="primary" :loading="isSubmitting" @click="handleEditPost">
           EDIT
         </UButton>
       </div>

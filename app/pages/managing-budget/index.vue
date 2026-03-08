@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { AuthStore } from '~/types/auth-store.types'
 import type { CMSResponse } from '~/types/response.types'
 import type {
   RemainingWeeklyBudgetApiResponse,
@@ -11,13 +10,51 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const authObject = useCookie<AuthStore>('auth')
+const authStore = useAuthStore()
 const isSubmitting = ref(false)
 const isSavingBudget = ref(false)
 const errorMessage = ref('')
 const saveMessage = ref('')
 const result = ref<RemainingWeeklyBudgetData | null>(null)
 const selectedFile = ref<File | null>(null)
+
+function getErrorMessage(error: unknown, fallback: string) {
+  const fetchError = error as {
+    data?: { message?: string } | string
+    statusCode?: number
+    statusMessage?: string
+  }
+
+  if (fetchError?.statusCode === 401) {
+    return '로그인이 만료되었습니다. 다시 로그인해 주세요.'
+  }
+
+  if (fetchError?.statusCode === 403) {
+    return '이 계정은 예산 관리 권한이 없습니다.'
+  }
+
+  if (fetchError?.statusCode === 404) {
+    return '현재 계정에 연결된 예산 데이터를 찾을 수 없습니다.'
+  }
+
+  if (typeof fetchError?.data === 'string' && fetchError.data) {
+    return fetchError.data
+  }
+
+  if (fetchError?.data && typeof fetchError.data === 'object' && 'message' in fetchError.data && typeof fetchError.data.message === 'string') {
+    return fetchError.data.message
+  }
+
+  if (fetchError?.statusMessage) {
+    return fetchError.statusMessage
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  return fallback
+}
 
 function today() {
   const now = new Date()
@@ -66,7 +103,7 @@ function pickRecommendedWeeklyLimit(data: RemainingWeeklyBudgetData) {
 }
 
 async function submitExcel() {
-  if (!authObject.value?.accessToken) {
+  if (!authStore.accessToken) {
     errorMessage.value = '로그인 정보가 없습니다.'
     return
   }
@@ -103,7 +140,7 @@ async function submitExcel() {
     const response = await $fetch<RemainingWeeklyBudgetApiResponse>('/api/budget/card-excel/remaining-weekly-budget', {
       method: 'POST',
       headers: {
-        Authorization: authObject.value.accessToken,
+        Authorization: authStore.accessToken,
       },
       credentials: 'include',
       body,
@@ -119,7 +156,7 @@ async function submitExcel() {
   }
   catch (error: unknown) {
     result.value = null
-    errorMessage.value = error instanceof Error ? error.message : '엑셀 분석 요청에 실패했습니다.'
+    errorMessage.value = getErrorMessage(error, '엑셀 분석 요청에 실패했습니다.')
   }
   finally {
     isSubmitting.value = false
@@ -127,7 +164,7 @@ async function submitExcel() {
 }
 
 async function saveCurrentWeekBudget() {
-  if (!authObject.value?.accessToken) {
+  if (!authStore.accessToken) {
     errorMessage.value = '로그인 정보가 없습니다.'
     return
   }
@@ -152,7 +189,7 @@ async function saveCurrentWeekBudget() {
     const response = await $fetch<CMSResponse<null>>('/api/budget/set', {
       method: 'POST',
       headers: {
-        Authorization: authObject.value.accessToken,
+        Authorization: authStore.accessToken,
       },
       credentials: 'include',
       body: {
@@ -168,7 +205,7 @@ async function saveCurrentWeekBudget() {
     saveMessage.value = response.message ?? '이번 주 예산을 저장했습니다.'
   }
   catch (error: unknown) {
-    errorMessage.value = error instanceof Error ? error.message : '주간 예산 저장에 실패했습니다.'
+    errorMessage.value = getErrorMessage(error, '주간 예산 저장에 실패했습니다.')
   }
   finally {
     isSavingBudget.value = false
@@ -184,6 +221,10 @@ async function saveCurrentWeekBudget() {
           카드 엑셀 기반 주간 예산 책정
         </h2>
       </template>
+
+      <p class="mb-3 text-sm text-muted">
+        로그인한 계정 기준 예산 데이터로 계산하고 저장합니다.
+      </p>
 
       <form class="grid gap-3 md:grid-cols-2" @submit.prevent="submitExcel">
         <UFormField label="총 예산">

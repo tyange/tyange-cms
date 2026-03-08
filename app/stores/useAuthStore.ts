@@ -4,6 +4,14 @@ import { defineStore } from 'pinia'
 export const useAuthStore = defineStore('auth', {
   state: (): AuthStore => ({
     isAuth: false,
+    accessToken: undefined,
+    refreshToken: undefined,
+    userRole: undefined,
   }),
+  actions: {
+    clearSession() {
+      this.$reset()
+    },
+  },
   persist: true,
 })

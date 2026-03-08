@@ -1,10 +1,11 @@
-import type { AuthStore } from '~/types/auth-store.types'
-
 export default defineNuxtRouteMiddleware(() => {
-  const authInCookie = useCookie<AuthStore>('auth')
+  const authStore = useAuthStore()
 
-  if (!authInCookie.value || !authInCookie.value.isAuth) {
-    console.error('Redirect because not authorized.')
+  if (!authStore.isAuth || !authStore.accessToken) {
     return navigateTo('/')
+  }
+
+  if (authStore.userRole !== 'admin') {
+    return navigateTo('/access-denied')
   }
 })

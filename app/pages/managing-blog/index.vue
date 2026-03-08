@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { AuthStore } from '~/types/auth-store.types'
 import type { PostListItem } from '~/types/editor.types'
 import type { CMSResponse } from '~/types/response.types'
 
@@ -8,42 +7,87 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const authObject = useCookie<AuthStore>('auth')
+const authStore = useAuthStore()
+const feedbackMessage = ref('')
 
-const { data, refresh, status } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`/api/posts`, {
-  headers: { Authorization: authObject.value!.accessToken! },
+function getErrorMessage(error: unknown, fallback: string) {
+  const fetchError = error as {
+    data?: { message?: string } | string
+    statusCode?: number
+    statusMessage?: string
+  }
+
+  if (fetchError?.statusCode === 401) {
+    return '로그인이 만료되었습니다. 다시 로그인해 주세요.'
+  }
+
+  if (fetchError?.statusCode === 403) {
+    return '관리자만 포스트 목록을 조회할 수 있습니다.'
+  }
+
+  if (typeof fetchError?.data === 'string' && fetchError.data) {
+    return fetchError.data
+  }
+
+  if (fetchError?.data && typeof fetchError.data === 'object' && 'message' in fetchError.data && typeof fetchError.data.message === 'string') {
+    return fetchError.data.message
+  }
+
+  if (fetchError?.statusMessage) {
+    return fetchError.statusMessage
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  return fallback
+}
+
+const { data, refresh, status, error } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`/api/posts`, {
+  headers: { Authorization: authStore.accessToken! },
   credentials: 'include',
   server: false,
 })
 
-const postList = computed(() => data.value?.data.posts ?? [])
+const postList = computed(() => data.value?.data?.posts ?? [])
 const isLoading = computed(() => status.value === 'pending')
+const loadErrorMessage = computed(() => error.value ? getErrorMessage(error.value, '포스트 목록을 불러오지 못했습니다.') : '')
 
 async function handleDeletePost(postId: string) {
-  if (!authObject.value?.accessToken) {
-    console.error('access token is missing in handleSubmitPost.')
+  if (!authStore.accessToken) {
+    feedbackMessage.value = '로그인 정보가 없습니다.'
     return
   }
 
   try {
     const res = await $fetch<CMSResponse<{ post_id: string }>>(`/api/post/delete?id=${postId}`, {
       method: 'DELETE',
-      headers: { Authorization: authObject.value.accessToken },
+      headers: { Authorization: authStore.accessToken },
       credentials: 'include',
     })
 
     if (res.status) {
+      feedbackMessage.value = ''
       await refresh()
     }
   }
-  catch (err) {
-    console.error(err)
+  catch (err: unknown) {
+    feedbackMessage.value = getErrorMessage(err, '포스트 삭제에 실패했습니다.')
   }
 }
 </script>
 
 <template>
   <div class="space-y-3">
+    <UAlert
+      v-if="loadErrorMessage || feedbackMessage"
+      color="error"
+      variant="subtle"
+      title="요청을 처리하지 못했습니다."
+      :description="loadErrorMessage || feedbackMessage"
+    />
+
     <template v-if="isLoading">
       <UCard v-for="i in 5" :key="i">
         <div class="flex items-start justify-between gap-4">
@@ -62,8 +106,7 @@ async function handleDeletePost(postId: string) {
         </div>
       </UCard>
     </template>
-
-    <template v-else-if="postList.length > 0">
+    <template v-else-if="!loadErrorMessage && postList.length > 0">
       <UCard
         v-for="post in postList"
         :key="post.post_id"
@@ -103,7 +146,7 @@ async function handleDeletePost(postId: string) {
     </template>
 
     <UEmpty
-      v-else
+      v-else-if="!loadErrorMessage"
       icon="i-lucide-inbox"
       label="No posts available"
     />

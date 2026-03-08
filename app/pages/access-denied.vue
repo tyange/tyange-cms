@@ -1,0 +1,45 @@
+<script setup lang="ts">
+const authStore = useAuthStore()
+
+if (!authStore.isAuth || !authStore.accessToken) {
+  await navigateTo('/')
+}
+
+if (authStore.userRole === 'admin') {
+  await navigateTo('/dashboard')
+}
+
+async function handleLogout() {
+  authStore.clearSession()
+  await navigateTo('/')
+}
+</script>
+
+<template>
+  <div class="flex min-h-screen items-center justify-center px-6">
+    <UCard class="w-full max-w-lg">
+      <template #header>
+        <h1 class="text-lg font-semibold">
+          관리자 전용 CMS입니다
+        </h1>
+      </template>
+
+      <div class="space-y-4">
+        <p class="text-sm text-muted">
+          인증은 완료됐지만 현재 계정의 역할은 <strong>{{ authStore.userRole ?? 'unknown' }}</strong> 이라서 `tyange-cms`에 접근할 수 없습니다.
+        </p>
+        <p class="text-sm text-muted">
+          관리자 계정으로 다시 로그인해 주세요. 예산/지출 API는 사용자별로 스코프되지만, 이 웹 앱 자체는 관리자 전용으로 운영됩니다.
+        </p>
+        <div class="flex gap-2">
+          <UButton color="neutral" variant="soft" @click="handleLogout">
+            로그아웃
+          </UButton>
+          <UButton to="/">
+            로그인으로 이동
+          </UButton>
+        </div>
+      </div>
+    </UCard>
+  </div>
+</template>
