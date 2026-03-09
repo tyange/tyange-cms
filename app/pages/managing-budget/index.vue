@@ -93,13 +93,15 @@ function isoWeekKey(dateValue: string) {
 }
 
 function pickRecommendedWeeklyLimit(data: RemainingWeeklyBudgetData) {
-  if (!data.buckets.length) {
+  const firstBucket = data.buckets[0]
+
+  if (!firstBucket) {
     return 0
   }
 
   const now = today()
   const currentBucket = data.buckets.find(bucket => bucket.from_date <= now && bucket.to_date >= now)
-  return currentBucket?.amount ?? data.buckets[0].amount
+  return currentBucket?.amount ?? firstBucket.amount
 }
 
 async function submitExcel() {
@@ -137,12 +139,8 @@ async function submitExcel() {
     }
     body.append('file', selectedFile.value)
 
-    const response = await $fetch<RemainingWeeklyBudgetApiResponse>('/api/budget/card-excel/remaining-weekly-budget', {
+    const response = await authenticatedFetch<RemainingWeeklyBudgetApiResponse>('/api/budget/card-excel/remaining-weekly-budget', {
       method: 'POST',
-      headers: {
-        Authorization: authStore.accessToken,
-      },
-      credentials: 'include',
       body,
     })
 
@@ -186,12 +184,8 @@ async function saveCurrentWeekBudget() {
   isSavingBudget.value = true
 
   try {
-    const response = await $fetch<CMSResponse<null>>('/api/budget/set', {
+    const response = await authenticatedFetch<CMSResponse<null>>('/api/budget/set', {
       method: 'POST',
-      headers: {
-        Authorization: authStore.accessToken,
-      },
-      credentials: 'include',
       body: {
         weekly_limit: Math.round(weeklyLimit),
         alert_threshold: alertThreshold,

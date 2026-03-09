@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SpendingListResponse, SpendingRecord, UpsertSpendingRequest } from '~/types/spending.types'
+import { handleUnauthorizedError, useAuthHeaders } from '~/composables/useAuthenticatedApi'
 
 definePageMeta({
   layout: 'default',
@@ -7,6 +8,7 @@ definePageMeta({
 })
 
 const authStore = useAuthStore()
+const authHeaders = useAuthHeaders()
 
 const weekInput = ref('')
 const appliedWeek = ref('')
@@ -72,16 +74,6 @@ function getCurrentDateTimeLocal() {
 
 createForm.transactedAt = getCurrentDateTimeLocal()
 
-const authHeaders = computed(() => {
-  if (!authStore.accessToken) {
-    return {}
-  }
-
-  return {
-    Authorization: authStore.accessToken,
-  }
-})
-
 const weekQuery = computed(() => {
   if (!appliedWeek.value.trim()) {
     return {}
@@ -98,6 +90,12 @@ const { data, status, refresh, error } = await useFetch<SpendingListResponse>('/
   credentials: 'include',
   server: false,
 })
+
+watch(error, async (value) => {
+  if (value) {
+    await handleUnauthorizedError(value)
+  }
+}, { immediate: true })
 
 const records = computed(() => data.value?.records ?? [])
 const weekKey = computed(() => data.value?.week_key ?? '-')
@@ -175,10 +173,8 @@ async function createSpending() {
       transacted_at: toApiDateTime(createForm.transactedAt),
     }
 
-    await $fetch('/api/spending/create', {
+    await authenticatedFetch('/api/spending/create', {
       method: 'POST',
-      headers: authHeaders.value,
-      credentials: 'include',
       body: payload,
     })
 
@@ -222,10 +218,8 @@ async function updateSpending(recordId: number) {
       transacted_at: toApiDateTime(editForm.transactedAt),
     }
 
-    await $fetch(`/api/spending/update?id=${recordId}`, {
+    await authenticatedFetch(`/api/spending/update?id=${recordId}`, {
       method: 'PUT',
-      headers: authHeaders.value,
-      credentials: 'include',
       body: payload,
     })
 
@@ -254,10 +248,8 @@ async function deleteSpending(recordId: number) {
   isSubmitting.value = true
 
   try {
-    await $fetch(`/api/spending/delete?id=${recordId}`, {
+    await authenticatedFetch(`/api/spending/delete?id=${recordId}`, {
       method: 'DELETE',
-      headers: authHeaders.value,
-      credentials: 'include',
     })
 
     if (editingId.value === recordId) {

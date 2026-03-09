@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PostListItem } from '~/types/editor.types'
 import type { CMSResponse } from '~/types/response.types'
+import { handleUnauthorizedError, useAuthHeaders } from '~/composables/useAuthenticatedApi'
 
 definePageMeta({
   layout: 'default',
@@ -8,6 +9,7 @@ definePageMeta({
 })
 
 const authStore = useAuthStore()
+const authHeaders = useAuthHeaders()
 const feedbackMessage = ref('')
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -45,10 +47,16 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 const { data, refresh, status, error } = await useFetch<CMSResponse<{ posts: PostListItem[] }>>(`/api/posts`, {
-  headers: { Authorization: authStore.accessToken! },
+  headers: authHeaders,
   credentials: 'include',
   server: false,
 })
+
+watch(error, async (value) => {
+  if (value) {
+    await handleUnauthorizedError(value)
+  }
+}, { immediate: true })
 
 const postList = computed(() => data.value?.data?.posts ?? [])
 const isLoading = computed(() => status.value === 'pending')
@@ -61,10 +69,8 @@ async function handleDeletePost(postId: string) {
   }
 
   try {
-    const res = await $fetch<CMSResponse<{ post_id: string }>>(`/api/post/delete?id=${postId}`, {
+    const res = await authenticatedFetch<CMSResponse<{ post_id: string }>>(`/api/post/delete?id=${postId}`, {
       method: 'DELETE',
-      headers: { Authorization: authStore.accessToken },
-      credentials: 'include',
     })
 
     if (res.status) {

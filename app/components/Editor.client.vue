@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { AuthStore } from '~/types/auth-store.types'
 import type { PostListItem, Tag, TagWithCategory } from '~/types/editor.types'
 import type { CMSResponse } from '~/types/response.types'
 import { CalendarDate } from '@internationalized/date'
@@ -19,7 +18,7 @@ MdEditorConfig({
 })
 
 const config = useRuntimeConfig()
-const authObject = useCookie<AuthStore>('auth')
+const authStore = useAuthStore()
 
 const publishedAtProps = computed(() => props.data?.published_at.split('-'))
 const currentDate = new Date()
@@ -101,7 +100,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 async function handleSubmitPost() {
-  if (!authObject.value?.accessToken) {
+  if (!authStore.accessToken) {
     submitError.value = '로그인 정보가 없습니다.'
     return
   }
@@ -119,10 +118,9 @@ async function handleSubmitPost() {
       status: status.value,
     }
 
-    const res = await $fetch<CMSResponse<PostListItem>>(`/api/post/upload`, {
+    const res = await authenticatedFetch<CMSResponse<PostListItem>>(`/api/post/upload`, {
       method: 'POST',
       body: post,
-      headers: { Authorization: authObject.value.accessToken },
     })
 
     if (res.status)
@@ -137,7 +135,7 @@ async function handleSubmitPost() {
 }
 
 async function handleEditPost() {
-  if (!authObject.value?.accessToken || !postId.value) {
+  if (!authStore.accessToken || !postId.value) {
     submitError.value = '로그인 정보가 없거나 수정 대상 포스트를 찾을 수 없습니다.'
     return
   }
@@ -156,10 +154,9 @@ async function handleEditPost() {
       status: status.value,
     }
 
-    const res = await $fetch<CMSResponse<PostListItem>>(`/api/post/update?id=${postId.value}`, {
+    const res = await authenticatedFetch<CMSResponse<PostListItem>>(`/api/post/update?id=${postId.value}`, {
       method: 'PUT',
       body: post,
-      headers: { Authorization: authObject.value.accessToken },
     })
 
     if (res.status)
@@ -174,7 +171,7 @@ async function handleEditPost() {
 }
 
 async function handleUploadImage(files: Array<File>, callback: (urls: string[]) => void) {
-  if (!authObject.value?.accessToken || !postId.value) {
+  if (!authStore.accessToken || !postId.value) {
     submitError.value = '이미지 업로드 전 포스트를 먼저 저장해 주세요.'
     return
   }
@@ -184,11 +181,13 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
       const compressedFile = await imageCompression(file, { maxSizeMB: 2, useWebWorker: true })
       const formData = new FormData()
       formData.append('file', compressedFile)
-      const res = await $fetch<CMSResponse<{ image_path: string }>>(`/api/post/upload-image?id=${postId.value}`, {
+      const res = await authenticatedFetch<CMSResponse<{ image_path: string }>>(`/api/post/upload-image?id=${postId.value}`, {
         method: 'POST',
-        headers: { Authorization: authObject.value.accessToken },
         body: formData,
       })
+      if (!res.data?.image_path) {
+        throw new Error('이미지 업로드 응답이 비어 있습니다.')
+      }
       results.push(`${config.public.tyangeCmsApiBase}${res.data.image_path}`)
     }
     callback(results)
