@@ -1,8 +1,10 @@
 <template>
-  <div class="w-screen h-screen flex flex-col">
+  <div class="flex min-h-screen flex-col">
     <DashBoardHeader />
-    <UMain class="flex-1 p-5">
-      <slot />
+    <UMain class="flex flex-1 px-5 py-6">
+      <div class="mx-auto flex w-full max-w-3xl flex-1 flex-col">
+        <slot />
+      </div>
     </UMain>
   </div>
 </template>

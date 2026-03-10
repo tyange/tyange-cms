@@ -31,7 +31,14 @@ async function handleLogout() {
 </script>
 
 <template>
-  <UHeader title="tyange-cms">
+  <UHeader
+    title="tyange-cms"
+    :ui="{
+      container: 'mx-auto flex h-full w-full max-w-3xl items-center justify-between gap-3 px-5',
+      header: 'h-(--ui-header-height) shrink-0 flex items-center justify-between gap-3',
+      body: 'px-5 py-4 overflow-y-auto',
+    }"
+  >
     <UNavigationMenu v-if="items.length" :items="items" />
     <template #right>
       <div class="flex items-center gap-3">
