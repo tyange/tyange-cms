@@ -19,16 +19,6 @@ const items = computed<NavigationMenuItem[]>(() =>
           to: '/managing-blog/create',
           active: route.path === '/managing-blog/create',
         },
-        {
-          label: '소비 관리',
-          to: '/managing-spending',
-          active: route.path === '/managing-spending',
-        },
-        {
-          label: '주간 예산 책정',
-          to: '/managing-budget',
-          active: route.path === '/managing-budget',
-        },
       ]
     : [],
 

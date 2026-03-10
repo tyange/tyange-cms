@@ -2,7 +2,7 @@
 import NotReadyYet from '~/components/NotReadyYet.vue'
 
 definePageMeta({
-  layout: 'home',
+  layout: 'default',
   middleware: ['auth'],
 })
 </script>

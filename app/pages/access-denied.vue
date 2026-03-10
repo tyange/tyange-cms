@@ -29,7 +29,7 @@ async function handleLogout() {
           인증은 완료됐지만 현재 계정의 역할은 <strong>{{ authStore.userRole ?? 'unknown' }}</strong> 이라서 `tyange-cms`에 접근할 수 없습니다.
         </p>
         <p class="text-sm text-muted">
-          관리자 계정으로 다시 로그인해 주세요. 예산/지출 API는 사용자별로 스코프되지만, 이 웹 앱 자체는 관리자 전용으로 운영됩니다.
+          관리자 계정으로 다시 로그인해 주세요. 개인 예산/소비 확인은 `tyange-dashboard`에서 처리하는 구조입니다.
         </p>
         <div class="flex gap-2">
           <UButton color="neutral" variant="soft" @click="handleLogout">
