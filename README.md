@@ -25,3 +25,12 @@
 - UI: `@nuxt/ui`, Tailwind CSS 4
 - State: Pinia (+ persisted state)
 - Editor: `md-editor-v3`, `nuxt-tiptap-editor`
+
+## 환경 변수 예시
+
+`.env.local`
+
+```env
+NUXT_PUBLIC_TYANGE_CMS_API_BASE=https://api.example.com
+NUXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+```

@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     tyangeCmsApiKey: '',
     public: {
       tyangeCmsApiBase: '',
+      googleClientId: '',
     },
   },
   devServer: {

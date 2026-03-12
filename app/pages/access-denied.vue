@@ -1,13 +1,13 @@
 <script setup lang="ts">
 const authStore = useAuthStore()
-
-if (!authStore.isAuth || !authStore.accessToken) {
-  await navigateTo('/')
-}
+const deniedRole = authStore.userRole
+const { adminOnlyMessage } = useAdminLogin()
 
 if (authStore.userRole === 'admin') {
   await navigateTo('/dashboard')
 }
+
+authStore.clearSession()
 
 async function handleLogout() {
   authStore.clearSession()
@@ -26,7 +26,10 @@ async function handleLogout() {
 
       <div class="space-y-4">
         <p class="text-sm text-muted">
-          인증은 완료됐지만 현재 계정의 역할은 <strong>{{ authStore.userRole ?? 'unknown' }}</strong> 이라서 `tyange-cms`에 접근할 수 없습니다.
+          {{ adminOnlyMessage }}
+        </p>
+        <p v-if="deniedRole" class="text-sm text-muted">
+          현재 응답된 역할은 <strong>{{ deniedRole }}</strong> 입니다.
         </p>
         <p class="text-sm text-muted">
           관리자 계정으로 다시 로그인해 주세요. 개인 예산/소비 확인은 `tyange-dashboard`에서 처리하는 구조입니다.

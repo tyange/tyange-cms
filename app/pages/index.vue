@@ -6,9 +6,12 @@ definePageMeta({
 })
 
 const authStore = useAuthStore()
+const { clearInvalidSession } = useAdminLogin()
 
 if (authStore.isAuth && authStore.accessToken) {
-  await navigateTo(authStore.userRole === 'admin' ? '/dashboard' : '/access-denied')
+  if (clearInvalidSession()) {
+    await navigateTo('/dashboard')
+  }
 }
 </script>
 
