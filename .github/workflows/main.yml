@@ -45,6 +45,7 @@ jobs:
           key: ${{ secrets.PRIVATE_SSH_KEY }}
           script: |
             cd ${{ vars.DEPLOY_PATH }}
-            /home/ubuntu/.local/share/pnpm/pm2 delete tyange-cms || true
-            /home/ubuntu/.local/share/pnpm/pm2 start ecosystem.config.js
+            export NUXT_PUBLIC_TYANGE_CMS_API_BASE='${{ vars.NUXT_PUBLIC_TYANGE_CMS_API_BASE }}'
+            export NUXT_PUBLIC_GOOGLE_CLIENT_ID='${{ secrets.NUXT_PUBLIC_GOOGLE_CLIENT_ID }}'
+            /home/ubuntu/.local/share/pnpm/pm2 startOrRestart ecosystem.config.js --update-env
             /home/ubuntu/.local/share/pnpm/pm2 save
