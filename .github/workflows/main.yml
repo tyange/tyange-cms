@@ -31,7 +31,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER_NAME }}
           key: ${{ secrets.PRIVATE_SSH_KEY }}
-          source: '.output,ecosystem.config.js'
+          source: ".output,ecosystem.config.js"
           target: ${{ vars.DEPLOY_PATH }}
           strip_components: 0
           debug: true
@@ -46,6 +46,7 @@ jobs:
           script: |
             cd ${{ vars.DEPLOY_PATH }}
             export NUXT_PUBLIC_TYANGE_CMS_API_BASE='${{ vars.NUXT_PUBLIC_TYANGE_CMS_API_BASE }}'
+            export NUXT_PUBLIC_TYANGE_CMS_API_BASE_PROD='${{ vars.NUXT_PUBLIC_TYANGE_CMS_API_BASE_PROD }}'
             export NUXT_PUBLIC_GOOGLE_CLIENT_ID='${{ secrets.NUXT_PUBLIC_GOOGLE_CLIENT_ID }}'
             /home/ubuntu/.local/share/pnpm/pm2 startOrRestart ecosystem.config.js --update-env
             /home/ubuntu/.local/share/pnpm/pm2 save

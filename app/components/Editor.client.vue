@@ -188,7 +188,7 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
       if (!res.data?.image_path) {
         throw new Error('이미지 업로드 응답이 비어 있습니다.')
       }
-      results.push(`${config.public.tyangeCmsApiBase}${res.data.image_path}`)
+      results.push(`${config.public.tyangeCmsApiBaseProd}${res.data.image_path}`)
     }
     callback(results)
   }
