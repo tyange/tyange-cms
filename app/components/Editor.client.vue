@@ -27,7 +27,14 @@ const postId = ref<string | null>(props.data?.post_id ?? null)
 const enteredTitle = ref(props.data?.title ?? '')
 const enteredDescription = ref(props.data?.description ?? '')
 const submitError = ref('')
-const isSubmitting = ref(false)
+const isSaving = ref(false)
+const isAutoSaving = ref(false)
+const hasUnsavedChanges = ref(false)
+const lastSavedAt = ref<Date | null>(props.data ? new Date() : null)
+const autoSaveDelay = 1500
+let autoSaveTimer: ReturnType<typeof setTimeout> | null = null
+let queuedAutoSave = false
+let queuedNavigateAfterSave = false
 
 const initialDate = publishedAtProps.value
   ? new CalendarDate(Number(publishedAtProps.value[0]), Number(publishedAtProps.value[1]), Number(publishedAtProps.value[2]))
@@ -37,6 +44,43 @@ const enteredPublishedAt = shallowRef(initialDate)
 const enteredTags = ref<Tag[]>(props.data?.tags ?? [])
 const enteredContent = ref(props.data?.content ?? '')
 const status = ref<POST_STATUS>(props.data?.status ?? POST_STATUS.DRAFT)
+const lastSavedSnapshot = ref('')
+
+const formattedLastSavedAt = computed(() => {
+  if (!lastSavedAt.value) {
+    return ''
+  }
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(lastSavedAt.value)
+})
+
+const saveStatusMessage = computed(() => {
+  if (submitError.value) {
+    return '저장에 실패했습니다. 내용을 확인한 뒤 다시 시도해 주세요.'
+  }
+
+  if (isAutoSaving.value) {
+    return '자동 저장 중입니다...'
+  }
+
+  if (isSaving.value) {
+    return '저장 중입니다...'
+  }
+
+  if (hasUnsavedChanges.value) {
+    return '저장되지 않은 변경사항이 있습니다.'
+  }
+
+  if (formattedLastSavedAt.value) {
+    return `마지막 저장 ${formattedLastSavedAt.value}`
+  }
+
+  return '변경사항이 생기면 자동으로 저장됩니다.'
+})
 
 const tagsByCategory = computed(() => {
   const map = new Map<string, string[]>()
@@ -99,82 +143,141 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback
 }
 
+function buildPostPayload() {
+  return {
+    title: enteredTitle.value,
+    description: enteredDescription.value,
+    published_at: enteredPublishedAt.value.toString(),
+    tags: enteredTags.value,
+    content: enteredContent.value,
+    status: status.value,
+  }
+}
+
+function buildSnapshot() {
+  return JSON.stringify(buildPostPayload())
+}
+
+function hasMeaningfulContent() {
+  return Boolean(
+    enteredTitle.value.trim()
+    || enteredDescription.value.trim()
+    || enteredContent.value.trim()
+    || enteredTags.value.length,
+  )
+}
+
+function clearAutoSaveTimer() {
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer)
+    autoSaveTimer = null
+  }
+}
+
+async function savePost(options?: { navigateOnSuccess?: boolean, isAutoSave?: boolean }) {
+  const navigateOnSuccess = options?.navigateOnSuccess ?? false
+  const isAutoSaveRequest = options?.isAutoSave ?? false
+
+  if (!authStore.accessToken) {
+    submitError.value = '로그인 정보가 없습니다.'
+    return false
+  }
+
+  if (!postId.value && isAutoSaveRequest && !hasMeaningfulContent()) {
+    return false
+  }
+
+  if (isSaving.value) {
+    queuedAutoSave = queuedAutoSave || isAutoSaveRequest
+    queuedNavigateAfterSave = queuedNavigateAfterSave || navigateOnSuccess
+    return false
+  }
+
+  clearAutoSaveTimer()
+  submitError.value = ''
+  isSaving.value = true
+  isAutoSaving.value = isAutoSaveRequest
+
+  try {
+    const payload = buildPostPayload()
+    const requestUrl = postId.value ? `/api/post/update?id=${postId.value}` : '/api/post/upload'
+    const requestMethod = postId.value ? 'PUT' : 'POST'
+    const requestBody = postId.value ? { post_id: postId.value, ...payload } : payload
+
+    const res = await authenticatedFetch<CMSResponse<PostListItem>>(requestUrl, {
+      method: requestMethod,
+      body: requestBody,
+    })
+
+    postId.value = res.data?.post_id ?? postId.value
+    lastSavedSnapshot.value = buildSnapshot()
+    lastSavedAt.value = new Date()
+    hasUnsavedChanges.value = false
+
+    if (res.status && navigateOnSuccess)
+      await navigateTo('/managing-blog')
+
+    return true
+  }
+  catch (err: unknown) {
+    submitError.value = getErrorMessage(
+      err,
+      postId.value ? '포스트 수정에 실패했습니다.' : '포스트 생성에 실패했습니다.',
+    )
+    return false
+  }
+  finally {
+    isSaving.value = false
+    isAutoSaving.value = false
+
+    if (queuedAutoSave || queuedNavigateAfterSave) {
+      const nextShouldNavigate = queuedNavigateAfterSave
+      queuedAutoSave = false
+      queuedNavigateAfterSave = false
+
+      if (hasUnsavedChanges.value) {
+        await savePost({
+          navigateOnSuccess: nextShouldNavigate,
+          isAutoSave: !nextShouldNavigate,
+        })
+      }
+      else if (nextShouldNavigate) {
+        await navigateTo('/managing-blog')
+      }
+    }
+  }
+}
+
 async function handleSubmitPost() {
+  await savePost({ navigateOnSuccess: true })
+}
+
+async function ensurePostExists() {
+  if (postId.value) {
+    return true
+  }
+
+  const saved = await savePost({ isAutoSave: true })
+
+  if (!saved || !postId.value) {
+    submitError.value = '이미지 업로드 전에 포스트를 자동 저장하지 못했습니다.'
+    return false
+  }
+
+  return true
+}
+
+async function handleUploadImage(files: Array<File>, callback: (urls: string[]) => void) {
   if (!authStore.accessToken) {
     submitError.value = '로그인 정보가 없습니다.'
     return
   }
 
-  submitError.value = ''
-  isSubmitting.value = true
-
-  try {
-    const post = {
-      title: enteredTitle.value,
-      description: enteredDescription.value,
-      published_at: enteredPublishedAt.value.toString(),
-      tags: enteredTags.value,
-      content: enteredContent.value,
-      status: status.value,
-    }
-
-    const res = await authenticatedFetch<CMSResponse<PostListItem>>(`/api/post/upload`, {
-      method: 'POST',
-      body: post,
-    })
-
-    if (res.status)
-      await navigateTo('/managing-blog')
-  }
-  catch (err: unknown) {
-    submitError.value = getErrorMessage(err, '포스트 생성에 실패했습니다.')
-  }
-  finally {
-    isSubmitting.value = false
-  }
-}
-
-async function handleEditPost() {
-  if (!authStore.accessToken || !postId.value) {
-    submitError.value = '로그인 정보가 없거나 수정 대상 포스트를 찾을 수 없습니다.'
+  const hasPost = await ensurePostExists()
+  if (!hasPost || !postId.value) {
     return
   }
 
-  submitError.value = ''
-  isSubmitting.value = true
-
-  try {
-    const post = {
-      post_id: postId.value,
-      title: enteredTitle.value,
-      description: enteredDescription.value,
-      published_at: enteredPublishedAt.value.toString(),
-      tags: enteredTags.value,
-      content: enteredContent.value,
-      status: status.value,
-    }
-
-    const res = await authenticatedFetch<CMSResponse<PostListItem>>(`/api/post/update?id=${postId.value}`, {
-      method: 'PUT',
-      body: post,
-    })
-
-    if (res.status)
-      await navigateTo('/managing-blog')
-  }
-  catch (err: unknown) {
-    submitError.value = getErrorMessage(err, '포스트 수정에 실패했습니다.')
-  }
-  finally {
-    isSubmitting.value = false
-  }
-}
-
-async function handleUploadImage(files: Array<File>, callback: (urls: string[]) => void) {
-  if (!authStore.accessToken || !postId.value) {
-    submitError.value = '이미지 업로드 전 포스트를 먼저 저장해 주세요.'
-    return
-  }
   try {
     const results = []
     for (const file of files) {
@@ -196,6 +299,60 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
     submitError.value = getErrorMessage(error, '이미지 업로드에 실패했습니다.')
   }
 }
+
+function scheduleAutoSave() {
+  clearAutoSaveTimer()
+
+  autoSaveTimer = setTimeout(() => {
+    if (!hasUnsavedChanges.value) {
+      return
+    }
+
+    void savePost({ isAutoSave: true })
+  }, autoSaveDelay)
+}
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+  if (!hasUnsavedChanges.value && !isSaving.value) {
+    return
+  }
+
+  event.preventDefault()
+  event.returnValue = ''
+}
+
+watch(
+  [
+    enteredTitle,
+    enteredDescription,
+    enteredPublishedAt,
+    enteredTags,
+    enteredContent,
+    status,
+  ],
+  () => {
+    const nextSnapshot = buildSnapshot()
+    hasUnsavedChanges.value = nextSnapshot !== lastSavedSnapshot.value
+
+    if (!hasUnsavedChanges.value) {
+      clearAutoSaveTimer()
+      return
+    }
+
+    scheduleAutoSave()
+  },
+  { deep: true },
+)
+
+onMounted(() => {
+  lastSavedSnapshot.value = buildSnapshot()
+  window.addEventListener('beforeunload', handleBeforeUnload)
+})
+
+onBeforeUnmount(() => {
+  clearAutoSaveTimer()
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+})
 </script>
 
 <template>
@@ -206,6 +363,13 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
       variant="subtle"
       title="요청을 처리하지 못했습니다."
       :description="submitError"
+    />
+
+    <UAlert
+      color="neutral"
+      variant="soft"
+      title="자동 저장"
+      :description="saveStatusMessage"
     />
 
     <div class="space-y-4">
@@ -248,11 +412,8 @@ async function handleUploadImage(files: Array<File>, callback: (urls: string[]) 
       </UFormField>
 
       <div>
-        <UButton v-if="!postId" color="primary" :loading="isSubmitting" @click="handleSubmitPost">
-          CREATE
-        </UButton>
-        <UButton v-else color="primary" :loading="isSubmitting" @click="handleEditPost">
-          EDIT
+        <UButton color="primary" :loading="isSaving" @click="handleSubmitPost">
+          {{ postId ? 'SAVE & EXIT' : 'CREATE & EXIT' }}
         </UButton>
       </div>
     </div>
