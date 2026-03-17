@@ -8,7 +8,9 @@
     "dev": "nuxt dev --dotenv .env.local",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.93",
@@ -35,8 +37,10 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.15.0",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/typography": "^0.5.16",
     "eslint": "^9.29.0",
-    "eslint-plugin-format": "^1.0.1"
+    "eslint-plugin-format": "^1.0.1",
+    "vitest": "^4.1.0"
   }
 }

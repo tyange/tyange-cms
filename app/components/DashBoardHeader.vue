@@ -32,6 +32,7 @@ async function handleLogout() {
 
 <template>
   <UHeader
+    data-testid="dashboard-header"
     title="tyange-cms"
     :ui="{
       container: 'mx-auto flex h-full w-full max-w-3xl items-center justify-between gap-3 px-5',
@@ -41,7 +42,7 @@ async function handleLogout() {
   >
     <UNavigationMenu v-if="items.length" :items="items" />
     <template #right>
-      <div class="flex items-center gap-3">
+      <div data-testid="dashboard-header-actions" class="flex items-center gap-3">
         <span class="text-sm text-muted">{{ authStore.userRole ?? 'unknown' }}</span>
         <UButton color="neutral" variant="ghost" icon="i-lucide-log-out" @click="handleLogout">
           로그아웃

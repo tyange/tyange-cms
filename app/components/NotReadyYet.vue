@@ -3,7 +3,7 @@ import { Clock } from 'lucide-vue-next'
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col items-center justify-center gap-5">
+  <div data-testid="not-ready-yet" class="flex flex-1 flex-col items-center justify-center gap-5">
     <div>
       <Clock :size="50" />
     </div>
