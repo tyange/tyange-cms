@@ -4,6 +4,7 @@ import type { AuthResponse } from '~/types/response.types'
 const enteredId = ref('')
 const enteredPassword = ref('')
 const errorMessage = ref('')
+const googleButtonShell = ref<HTMLDivElement | null>(null)
 const googleButtonContainer = ref<HTMLDivElement | null>(null)
 const isPasswordSubmitting = ref(false)
 const isGoogleSubmitting = ref(false)
@@ -18,17 +19,20 @@ const googleClientId = computed(() => config.public.googleClientId?.trim() ?? ''
 const googleScriptSrc = 'https://accounts.google.com/gsi/client'
 
 let googleScriptPromise: Promise<void> | null = null
+let googleButtonResizeObserver: ResizeObserver | null = null
 
 function setErrorMessage(message: string) {
   errorMessage.value = message
 }
 
 function getGoogleButtonWidth() {
-  if (!googleButtonContainer.value) {
+  const widthSource = googleButtonShell.value ?? googleButtonContainer.value
+
+  if (!widthSource) {
     return 360
   }
 
-  return Math.max(Math.floor(googleButtonContainer.value.clientWidth), 240)
+  return Math.max(Math.floor(widthSource.clientWidth), 240)
 }
 
 function loadGoogleScript() {
@@ -182,10 +186,18 @@ async function handleSubmit() {
 onMounted(async () => {
   await setupGoogleLogin()
   window.addEventListener('resize', renderGoogleButton)
+
+  if (typeof ResizeObserver !== 'undefined' && googleButtonShell.value) {
+    googleButtonResizeObserver = new ResizeObserver(() => {
+      renderGoogleButton()
+    })
+    googleButtonResizeObserver.observe(googleButtonShell.value)
+  }
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', renderGoogleButton)
+  googleButtonResizeObserver?.disconnect()
   window.google?.accounts?.id.cancel()
 })
 </script>
@@ -272,14 +284,14 @@ onBeforeUnmount(() => {
 
           <div class="space-y-3">
             <div class="rounded-[26px] border border-white/10 bg-white/5 p-2">
-              <div class="relative min-h-14">
+              <div ref="googleButtonShell" class="google-button-shell relative min-h-14">
                 <div
                   class="transition-opacity"
                   :class="[
                     isGoogleReady && !isGoogleSubmitting ? 'opacity-100' : 'pointer-events-none opacity-0',
                   ]"
                 >
-                  <div ref="googleButtonContainer" class="flex min-h-14 w-full items-center justify-center" />
+                  <div ref="googleButtonContainer" class="google-button-container min-h-14 w-full" />
                 </div>
                 <div
                   v-if="!isGoogleReady || isGoogleSubmitting"
@@ -310,4 +322,20 @@ onBeforeUnmount(() => {
   </section>
 </template>
 
-<style scoped></style>
+<style scoped>
+.google-button-shell {
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+.google-button-container {
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+.google-button-container :deep(> div),
+.google-button-container :deep(iframe) {
+  display: block;
+  max-width: 100%;
+}
+</style>
