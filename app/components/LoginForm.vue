@@ -283,22 +283,20 @@ onBeforeUnmount(() => {
           </div>
 
           <div class="space-y-3">
-            <div class="rounded-[26px] border border-white/10 bg-white/5 p-2">
-              <div ref="googleButtonShell" class="google-button-shell relative min-h-14">
-                <div
-                  class="transition-opacity"
-                  :class="[
-                    isGoogleReady && !isGoogleSubmitting ? 'opacity-100' : 'pointer-events-none opacity-0',
-                  ]"
-                >
-                  <div ref="googleButtonContainer" class="google-button-container min-h-14 w-full" />
-                </div>
-                <div
-                  v-if="!isGoogleReady || isGoogleSubmitting"
-                  class="absolute inset-0 flex items-center justify-center rounded-[22px] border border-white/10 bg-[#081427] text-sm font-medium text-white/72"
-                >
-                  {{ isGoogleSubmitting ? 'Google 로그인 처리 중...' : 'Google 로그인 준비 중...' }}
-                </div>
+            <div ref="googleButtonShell" class="google-button-shell relative mx-auto min-h-14 w-full max-w-[400px]">
+              <div
+                class="transition-opacity"
+                :class="[
+                  isGoogleReady && !isGoogleSubmitting ? 'opacity-100' : 'pointer-events-none opacity-0',
+                ]"
+              >
+                <div ref="googleButtonContainer" class="google-button-container min-h-14 w-full" />
+              </div>
+              <div
+                v-if="!isGoogleReady || isGoogleSubmitting"
+                class="absolute inset-0 flex items-center justify-center rounded-[22px] border border-white/10 bg-[#081427] text-sm font-medium text-white/72"
+              >
+                {{ isGoogleSubmitting ? 'Google 로그인 처리 중...' : 'Google 로그인 준비 중...' }}
               </div>
             </div>
 
