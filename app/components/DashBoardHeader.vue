@@ -19,6 +19,11 @@ const items = computed<NavigationMenuItem[]>(() =>
           to: '/managing-blog/create',
           active: route.path === '/managing-blog/create',
         },
+        {
+          label: '포트폴리오',
+          to: '/portfolio',
+          active: route.path === '/portfolio',
+        },
       ]
     : [],
 
