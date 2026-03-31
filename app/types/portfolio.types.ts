@@ -63,6 +63,27 @@ export interface PortfolioCurrentItem {
   stack: string[]
 }
 
+export interface PortfolioCareerItem {
+  title: string
+  period?: string | null
+  bullets: string[]
+}
+
+export interface PortfolioCareerCompany {
+  company: string
+  period: string
+  employment_type: string
+  role: string
+  position: string
+  items: PortfolioCareerItem[]
+}
+
+export interface PortfolioCareerSection {
+  summary_label: string
+  summary_value: string
+  companies: PortfolioCareerCompany[]
+}
+
 export interface PortfolioDocument {
   slug: string
   version: number
@@ -74,6 +95,7 @@ export interface PortfolioDocument {
   featured_projects: PortfolioProject[]
   about: PortfolioAbout
   writing: PortfolioWritingSection
+  career?: PortfolioCareerSection
   currently_building?: PortfolioCurrentItem[]
 }
 
@@ -128,6 +150,11 @@ export function createEmptyPortfolioDocument(): PortfolioDocument {
       title: '',
       description: '',
     },
+    career: {
+      summary_label: '',
+      summary_value: '',
+      companies: [],
+    },
     currently_building: [],
   }
 }
@@ -176,6 +203,17 @@ export function normalizePortfolioDocument(document?: PortfolioDocument | null):
     writing: {
       ...base.writing,
       ...document.writing,
+    },
+    career: {
+      ...base.career,
+      ...document.career,
+      companies: (document.career?.companies ?? []).map(company => ({
+        ...company,
+        items: (company.items ?? []).map(item => ({
+          ...item,
+          bullets: [...(item.bullets ?? [])],
+        })),
+      })),
     },
     currently_building: (document.currently_building ?? []).map(item => ({
       ...item,

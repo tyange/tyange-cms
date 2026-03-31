@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type {
+  PortfolioCareerCompany,
+  PortfolioCareerItem,
   PortfolioCurrentItem,
   PortfolioDocument,
   PortfolioHighlightCard,
@@ -157,6 +159,25 @@ function createCurrentItem(): PortfolioCurrentItem {
   }
 }
 
+function createCareerItem(): PortfolioCareerItem {
+  return {
+    title: '',
+    period: '',
+    bullets: [],
+  }
+}
+
+function createCareerCompany(): PortfolioCareerCompany {
+  return {
+    company: '',
+    period: '',
+    employment_type: '',
+    role: '',
+    position: '',
+    items: [createCareerItem()],
+  }
+}
+
 function parseMultilineList(value: string) {
   return value
     .split('\n')
@@ -188,6 +209,12 @@ function updateCurrentItemStack(index: number, value: string) {
   const currentItems = portfolio.value.currently_building ?? []
   currentItems[index].stack = parseMultilineList(value)
   portfolio.value.currently_building = currentItems
+}
+
+function updateCareerItemBullets(companyIndex: number, itemIndex: number, value: string) {
+  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  career.companies[companyIndex].items[itemIndex].bullets = parseMultilineList(value)
+  portfolio.value.career = career
 }
 
 function addHighlightCard() {
@@ -236,6 +263,30 @@ function removeCurrentItem(index: number) {
   const currentItems = portfolio.value.currently_building ?? []
   currentItems.splice(index, 1)
   portfolio.value.currently_building = currentItems
+}
+
+function addCareerCompany() {
+  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  career.companies.push(createCareerCompany())
+  portfolio.value.career = career
+}
+
+function removeCareerCompany(index: number) {
+  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  career.companies.splice(index, 1)
+  portfolio.value.career = career
+}
+
+function addCareerItem(companyIndex: number) {
+  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  career.companies[companyIndex].items.push(createCareerItem())
+  portfolio.value.career = career
+}
+
+function removeCareerItem(companyIndex: number, itemIndex: number) {
+  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  career.companies[companyIndex].items.splice(itemIndex, 1)
+  portfolio.value.career = career
 }
 
 function buildPayload() {
@@ -761,6 +812,121 @@ async function handleDelete() {
           <UFormField label="Description">
             <UTextarea v-model="portfolio.writing.description" :rows="4" autoresize />
           </UFormField>
+        </div>
+      </UCard>
+
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="font-semibold">
+              Career
+            </h2>
+            <UButton size="sm" variant="subtle" icon="i-lucide-plus" @click="addCareerCompany">
+              회사 추가
+            </UButton>
+          </div>
+        </template>
+
+        <div class="space-y-4">
+          <template v-if="portfolio.career">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <UFormField label="Summary Label">
+                <UInput v-model="portfolio.career.summary_label" />
+              </UFormField>
+
+              <UFormField label="Summary Value">
+                <UInput v-model="portfolio.career.summary_value" />
+              </UFormField>
+            </div>
+
+            <div v-if="portfolio.career.companies.length" class="space-y-4">
+              <div
+                v-for="(company, companyIndex) in portfolio.career.companies"
+                :key="companyIndex"
+                class="rounded-xl border border-default p-4"
+              >
+                <div class="mb-4 flex items-center justify-between gap-3">
+                  <h3 class="font-medium">
+                    Company {{ companyIndex + 1 }}
+                  </h3>
+                  <UButton color="error" variant="ghost" icon="i-lucide-trash" @click="removeCareerCompany(companyIndex)" />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <UFormField label="Company">
+                    <UInput v-model="company.company" />
+                  </UFormField>
+
+                  <UFormField label="Period">
+                    <UInput v-model="company.period" />
+                  </UFormField>
+
+                  <UFormField label="Employment Type">
+                    <UInput v-model="company.employment_type" />
+                  </UFormField>
+
+                  <UFormField label="Role">
+                    <UInput v-model="company.role" />
+                  </UFormField>
+
+                  <UFormField label="Position" class="sm:col-span-2">
+                    <UInput v-model="company.position" />
+                  </UFormField>
+                </div>
+
+                <div class="mt-4 rounded-lg border border-default p-4">
+                  <div class="mb-3 flex items-center justify-between gap-3">
+                    <h4 class="font-medium">
+                      Career Items
+                    </h4>
+                    <UButton size="sm" variant="subtle" icon="i-lucide-plus" @click="addCareerItem(companyIndex)">
+                      항목 추가
+                    </UButton>
+                  </div>
+
+                  <div v-if="company.items.length" class="space-y-4">
+                    <div
+                      v-for="(item, itemIndex) in company.items"
+                      :key="itemIndex"
+                      class="rounded-lg border border-default p-4"
+                    >
+                      <div class="mb-4 flex items-center justify-between gap-3">
+                        <h5 class="font-medium">
+                          Item {{ itemIndex + 1 }}
+                        </h5>
+                        <UButton color="error" variant="ghost" icon="i-lucide-trash" @click="removeCareerItem(companyIndex, itemIndex)" />
+                      </div>
+
+                      <div class="space-y-4">
+                        <UFormField label="Title">
+                          <UInput v-model="item.title" />
+                        </UFormField>
+
+                        <UFormField label="Period">
+                          <UInput v-model="item.period" />
+                        </UFormField>
+
+                        <UFormField label="Bullets (one per line)">
+                          <UTextarea
+                            :model-value="item.bullets.join('\n')"
+                            :rows="5"
+                            autoresize
+                            @update:model-value="updateCareerItemBullets(companyIndex, itemIndex, $event)"
+                          />
+                        </UFormField>
+                      </div>
+                    </div>
+                  </div>
+
+                  <UEmpty v-else icon="i-lucide-briefcase-business" label="No career items" />
+                </div>
+              </div>
+            </div>
+
+            <UEmpty v-else icon="i-lucide-briefcase" label="No career companies" />
+          </template>
+
+          <UEmpty v-else icon="i-lucide-briefcase" label="Career section unavailable" />
         </div>
       </UCard>
 
