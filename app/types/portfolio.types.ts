@@ -1,5 +1,3 @@
-import { portfolioDraft } from '~/data/portfolio-draft'
-
 export interface PortfolioLink {
   label: string
   url: string
@@ -109,59 +107,56 @@ export interface PortfolioResponse {
   updated_at: string
 }
 
-function clonePortfolioDocument(document: PortfolioDocument): PortfolioDocument {
+export function createEmptyPortfolioDocument(): PortfolioDocument {
   return {
-    ...document,
+    slug: 'dev',
+    version: 1,
     identity: {
-      ...document.identity,
+      name: '',
+      role: '',
+      location: '',
+      availability: '',
+      email: '',
+      github_url: '',
+      blog_url: '',
+      velog_url: null,
     },
     hero: {
-      ...document.hero,
+      eyebrow: '',
+      headline: '',
+      summary: '',
       primary_cta: {
-        ...document.hero.primary_cta,
+        label: '',
+        url: '',
       },
       secondary_cta: {
-        ...document.hero.secondary_cta,
+        label: '',
+        url: '',
       },
     },
-    highlight_cards: document.highlight_cards.map(card => ({ ...card })),
-    metrics: [...(document.metrics ?? [])],
-    featured_projects: document.featured_projects.map(project => ({
-      ...project,
-      stack: [...(project.stack ?? [])],
-      highlights: [...(project.highlights ?? [])],
-      links: project.links.map(link => ({ ...link })),
-    })),
+    highlight_cards: [],
+    metrics: [],
+    guiding_principle: '',
+    featured_projects: [],
     about: {
-      ...document.about,
-      paragraphs: [...(document.about.paragraphs ?? [])],
-      services: [...(document.about.services ?? [])],
-      strengths: [...(document.about.strengths ?? [])],
+      eyebrow: '',
+      headline: '',
+      paragraphs: [],
+      services: [],
+      strengths: [],
     },
     writing: {
-      ...document.writing,
+      eyebrow: '',
+      title: '',
+      description: '',
     },
-    career: document.career
-      ? {
-          ...document.career,
-          companies: document.career.companies.map(company => ({
-            ...company,
-            items: company.items.map(item => ({
-              ...item,
-              bullets: [...(item.bullets ?? [])],
-            })),
-          })),
-        }
-      : undefined,
-    currently_building: (document.currently_building ?? []).map(item => ({
-      ...item,
-      stack: [...(item.stack ?? [])],
-    })),
+    career: {
+      summary_label: '',
+      summary_value: '',
+      companies: [],
+    },
+    currently_building: [],
   }
-}
-
-export function createEmptyPortfolioDocument(): PortfolioDocument {
-  return clonePortfolioDocument(portfolioDraft)
 }
 
 export function normalizePortfolioDocument(document?: PortfolioDocument | null): PortfolioDocument {
