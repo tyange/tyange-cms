@@ -2,20 +2,17 @@
 import type {
   PortfolioCareerCompany,
   PortfolioCareerItem,
-  PortfolioCurrentItem,
   PortfolioDocument,
-  PortfolioHighlightCard,
   PortfolioLink,
-  PortfolioMetric,
   PortfolioProject,
   PortfolioResponse,
 } from '~/types/portfolio.types'
 import type { CMSResponse } from '~/types/response.types'
+import { handleUnauthorizedError, useAuthHeaders } from '~/composables/useAuthenticatedApi'
 import {
   createEmptyPortfolioDocument,
   normalizePortfolioDocument,
 } from '~/types/portfolio.types'
-import { handleUnauthorizedError, useAuthHeaders } from '~/composables/useAuthenticatedApi'
 
 const authHeaders = useAuthHeaders()
 
@@ -124,21 +121,6 @@ function createLink(): PortfolioLink {
   }
 }
 
-function createHighlightCard(): PortfolioHighlightCard {
-  return {
-    label: '',
-    title: '',
-  }
-}
-
-function createMetric(): PortfolioMetric {
-  return {
-    value: '',
-    unit: '',
-    description: '',
-  }
-}
-
 function createProject(): PortfolioProject {
   return {
     slug: '',
@@ -146,16 +128,7 @@ function createProject(): PortfolioProject {
     period: '',
     summary: '',
     stack: [],
-    highlights: [],
     links: [createLink()],
-  }
-}
-
-function createCurrentItem(): PortfolioCurrentItem {
-  return {
-    name: '',
-    summary: '',
-    stack: [],
   }
 }
 
@@ -189,52 +162,10 @@ function updateProjectStack(index: number, value: string) {
   portfolio.value.featured_projects[index].stack = parseMultilineList(value)
 }
 
-function updateProjectHighlights(index: number, value: string) {
-  portfolio.value.featured_projects[index].highlights = parseMultilineList(value)
-}
-
-function updateAboutParagraphs(value: string) {
-  portfolio.value.about.paragraphs = parseMultilineList(value)
-}
-
-function updateAboutServices(value: string) {
-  portfolio.value.about.services = parseMultilineList(value)
-}
-
-function updateAboutStrengths(value: string) {
-  portfolio.value.about.strengths = parseMultilineList(value)
-}
-
-function updateCurrentItemStack(index: number, value: string) {
-  const currentItems = portfolio.value.currently_building ?? []
-  currentItems[index].stack = parseMultilineList(value)
-  portfolio.value.currently_building = currentItems
-}
-
 function updateCareerItemBullets(companyIndex: number, itemIndex: number, value: string) {
   const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
   career.companies[companyIndex].items[itemIndex].bullets = parseMultilineList(value)
   portfolio.value.career = career
-}
-
-function addHighlightCard() {
-  portfolio.value.highlight_cards.push(createHighlightCard())
-}
-
-function removeHighlightCard(index: number) {
-  portfolio.value.highlight_cards.splice(index, 1)
-}
-
-function addMetric() {
-  const metrics = portfolio.value.metrics ?? []
-  metrics.push(createMetric())
-  portfolio.value.metrics = metrics
-}
-
-function removeMetric(index: number) {
-  const metrics = portfolio.value.metrics ?? []
-  metrics.splice(index, 1)
-  portfolio.value.metrics = metrics
 }
 
 function addProject() {
@@ -251,18 +182,6 @@ function addProjectLink(projectIndex: number) {
 
 function removeProjectLink(projectIndex: number, linkIndex: number) {
   portfolio.value.featured_projects[projectIndex].links.splice(linkIndex, 1)
-}
-
-function addCurrentItem() {
-  const currentItems = portfolio.value.currently_building ?? []
-  currentItems.push(createCurrentItem())
-  portfolio.value.currently_building = currentItems
-}
-
-function removeCurrentItem(index: number) {
-  const currentItems = portfolio.value.currently_building ?? []
-  currentItems.splice(index, 1)
-  portfolio.value.currently_building = currentItems
 }
 
 function addCareerCompany() {
@@ -294,8 +213,6 @@ function buildPayload() {
     content: {
       ...portfolio.value,
       slug: portfolio.value.slug.trim() || 'dev',
-      metrics: portfolio.value.metrics?.length ? portfolio.value.metrics : [],
-      currently_building: portfolio.value.currently_building?.length ? portfolio.value.currently_building : [],
     },
   }
 }
@@ -471,188 +388,24 @@ async function handleDelete() {
             <UInput v-model.number="portfolio.version" type="number" />
           </UFormField>
         </div>
-
-        <UFormField class="mt-4" label="Guiding Principle">
-          <UTextarea v-model="portfolio.guiding_principle" :rows="3" autoresize />
-        </UFormField>
       </UCard>
 
       <UCard>
         <template #header>
           <h2 class="font-semibold">
-            Identity
+            Contact
           </h2>
         </template>
 
         <div class="grid gap-4 sm:grid-cols-2">
-          <UFormField label="Name">
-            <UInput v-model="portfolio.identity.name" />
-          </UFormField>
-
-          <UFormField label="Role">
-            <UInput v-model="portfolio.identity.role" />
-          </UFormField>
-
-          <UFormField label="Location">
-            <UInput v-model="portfolio.identity.location" />
-          </UFormField>
-
-          <UFormField label="Availability">
-            <UInput v-model="portfolio.identity.availability" />
-          </UFormField>
-
           <UFormField label="Email">
-            <UInput v-model="portfolio.identity.email" />
+            <UInput v-model="portfolio.email" />
           </UFormField>
 
           <UFormField label="Github URL">
-            <UInput v-model="portfolio.identity.github_url" />
-          </UFormField>
-
-          <UFormField label="Blog URL">
-            <UInput v-model="portfolio.identity.blog_url" />
-          </UFormField>
-
-          <UFormField label="Velog URL">
-            <UInput v-model="portfolio.identity.velog_url" />
+            <UInput v-model="portfolio.github_url" />
           </UFormField>
         </div>
-      </UCard>
-
-      <UCard>
-        <template #header>
-          <h2 class="font-semibold">
-            Hero
-          </h2>
-        </template>
-
-        <div class="space-y-4">
-          <UFormField label="Eyebrow">
-            <UInput v-model="portfolio.hero.eyebrow" />
-          </UFormField>
-
-          <UFormField label="Headline">
-            <UInput v-model="portfolio.hero.headline" />
-          </UFormField>
-
-          <UFormField label="Summary">
-            <UTextarea v-model="portfolio.hero.summary" :rows="4" autoresize />
-          </UFormField>
-
-          <div class="grid gap-4 lg:grid-cols-2">
-            <div class="rounded-lg border border-default p-4">
-              <h3 class="mb-3 font-medium">
-                Primary CTA
-              </h3>
-              <div class="space-y-3">
-                <UFormField label="Label">
-                  <UInput v-model="portfolio.hero.primary_cta.label" />
-                </UFormField>
-                <UFormField label="URL">
-                  <UInput v-model="portfolio.hero.primary_cta.url" />
-                </UFormField>
-              </div>
-            </div>
-
-            <div class="rounded-lg border border-default p-4">
-              <h3 class="mb-3 font-medium">
-                Secondary CTA
-              </h3>
-              <div class="space-y-3">
-                <UFormField label="Label">
-                  <UInput v-model="portfolio.hero.secondary_cta.label" />
-                </UFormField>
-                <UFormField label="URL">
-                  <UInput v-model="portfolio.hero.secondary_cta.url" />
-                </UFormField>
-              </div>
-            </div>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between gap-3">
-            <h2 class="font-semibold">
-              Highlight Cards
-            </h2>
-            <UButton size="sm" variant="subtle" icon="i-lucide-plus" @click="addHighlightCard">
-              카드 추가
-            </UButton>
-          </div>
-        </template>
-
-        <div v-if="portfolio.highlight_cards.length" class="space-y-4">
-          <div
-            v-for="(card, index) in portfolio.highlight_cards"
-            :key="index"
-            class="rounded-lg border border-default p-4"
-          >
-            <div class="mb-4 flex items-center justify-between gap-3">
-              <h3 class="font-medium">
-                Card {{ index + 1 }}
-              </h3>
-              <UButton color="error" variant="ghost" icon="i-lucide-trash" @click="removeHighlightCard(index)" />
-            </div>
-
-            <div class="grid gap-4 sm:grid-cols-2">
-              <UFormField label="Label">
-                <UInput v-model="card.label" />
-              </UFormField>
-
-              <UFormField label="Title">
-                <UInput v-model="card.title" />
-              </UFormField>
-            </div>
-          </div>
-        </div>
-
-        <UEmpty v-else icon="i-lucide-layout-grid" label="No highlight cards" />
-      </UCard>
-
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between gap-3">
-            <h2 class="font-semibold">
-              Metrics
-            </h2>
-            <UButton size="sm" variant="subtle" icon="i-lucide-plus" @click="addMetric">
-              메트릭 추가
-            </UButton>
-          </div>
-        </template>
-
-        <div v-if="portfolio.metrics?.length" class="space-y-4">
-          <div
-            v-for="(metric, index) in portfolio.metrics"
-            :key="index"
-            class="rounded-lg border border-default p-4"
-          >
-            <div class="mb-4 flex items-center justify-between gap-3">
-              <h3 class="font-medium">
-                Metric {{ index + 1 }}
-              </h3>
-              <UButton color="error" variant="ghost" icon="i-lucide-trash" @click="removeMetric(index)" />
-            </div>
-
-            <div class="grid gap-4 sm:grid-cols-3">
-              <UFormField label="Value">
-                <UInput v-model="metric.value" />
-              </UFormField>
-
-              <UFormField label="Unit">
-                <UInput v-model="metric.unit" />
-              </UFormField>
-
-              <UFormField label="Description">
-                <UInput v-model="metric.description" />
-              </UFormField>
-            </div>
-          </div>
-        </div>
-
-        <UEmpty v-else icon="i-lucide-chart-column" label="No metrics" />
       </UCard>
 
       <UCard>
@@ -697,21 +450,12 @@ async function handleDelete() {
                 <UTextarea v-model="project.summary" :rows="3" autoresize />
               </UFormField>
 
-              <UFormField label="Stack (one per line)">
+              <UFormField label="Stack (one per line)" class="sm:col-span-2">
                 <UTextarea
                   :model-value="project.stack.join('\n')"
                   :rows="4"
                   autoresize
                   @update:model-value="updateProjectStack(projectIndex, $event)"
-                />
-              </UFormField>
-
-              <UFormField label="Highlights (one per line)">
-                <UTextarea
-                  :model-value="project.highlights.join('\n')"
-                  :rows="4"
-                  autoresize
-                  @update:model-value="updateProjectHighlights(projectIndex, $event)"
                 />
               </UFormField>
             </div>
@@ -742,77 +486,6 @@ async function handleDelete() {
         </div>
 
         <UEmpty v-else icon="i-lucide-folder-open" label="No featured projects" />
-      </UCard>
-
-      <UCard>
-        <template #header>
-          <h2 class="font-semibold">
-            About
-          </h2>
-        </template>
-
-        <div class="space-y-4">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormField label="Eyebrow">
-              <UInput v-model="portfolio.about.eyebrow" />
-            </UFormField>
-
-            <UFormField label="Headline">
-              <UInput v-model="portfolio.about.headline" />
-            </UFormField>
-          </div>
-
-          <UFormField label="Paragraphs (one per line)">
-            <UTextarea
-              :model-value="portfolio.about.paragraphs.join('\n')"
-              :rows="5"
-              autoresize
-              @update:model-value="updateAboutParagraphs"
-            />
-          </UFormField>
-
-          <div class="grid gap-4 lg:grid-cols-2">
-            <UFormField label="Services (one per line)">
-              <UTextarea
-                :model-value="portfolio.about.services.join('\n')"
-                :rows="5"
-                autoresize
-                @update:model-value="updateAboutServices"
-              />
-            </UFormField>
-
-            <UFormField label="Strengths (one per line)">
-              <UTextarea
-                :model-value="portfolio.about.strengths.join('\n')"
-                :rows="5"
-                autoresize
-                @update:model-value="updateAboutStrengths"
-              />
-            </UFormField>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard>
-        <template #header>
-          <h2 class="font-semibold">
-            Writing
-          </h2>
-        </template>
-
-        <div class="space-y-4">
-          <UFormField label="Eyebrow">
-            <UInput v-model="portfolio.writing.eyebrow" />
-          </UFormField>
-
-          <UFormField label="Title">
-            <UInput v-model="portfolio.writing.title" />
-          </UFormField>
-
-          <UFormField label="Description">
-            <UTextarea v-model="portfolio.writing.description" :rows="4" autoresize />
-          </UFormField>
-        </div>
       </UCard>
 
       <UCard>
@@ -928,55 +601,6 @@ async function handleDelete() {
 
           <UEmpty v-else icon="i-lucide-briefcase" label="Career section unavailable" />
         </div>
-      </UCard>
-
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between gap-3">
-            <h2 class="font-semibold">
-              Currently Building
-            </h2>
-            <UButton size="sm" variant="subtle" icon="i-lucide-plus" @click="addCurrentItem">
-              항목 추가
-            </UButton>
-          </div>
-        </template>
-
-        <div v-if="portfolio.currently_building?.length" class="space-y-4">
-          <div
-            v-for="(item, index) in portfolio.currently_building"
-            :key="index"
-            class="rounded-lg border border-default p-4"
-          >
-            <div class="mb-4 flex items-center justify-between gap-3">
-              <h3 class="font-medium">
-                Item {{ index + 1 }}
-              </h3>
-              <UButton color="error" variant="ghost" icon="i-lucide-trash" @click="removeCurrentItem(index)" />
-            </div>
-
-            <div class="space-y-4">
-              <UFormField label="Name">
-                <UInput v-model="item.name" />
-              </UFormField>
-
-              <UFormField label="Summary">
-                <UTextarea v-model="item.summary" :rows="3" autoresize />
-              </UFormField>
-
-              <UFormField label="Stack (one per line)">
-                <UTextarea
-                  :model-value="item.stack.join('\n')"
-                  :rows="4"
-                  autoresize
-                  @update:model-value="updateCurrentItemStack(index, $event)"
-                />
-              </UFormField>
-            </div>
-          </div>
-        </div>
-
-        <UEmpty v-else icon="i-lucide-hammer" label="No current items" />
       </UCard>
     </template>
   </div>
