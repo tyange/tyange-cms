@@ -9,10 +9,7 @@ import type {
 } from '~/types/portfolio.types'
 import type { CMSResponse } from '~/types/response.types'
 import { handleUnauthorizedError, useAuthHeaders } from '~/composables/useAuthenticatedApi'
-import {
-  createEmptyPortfolioDocument,
-  normalizePortfolioDocument,
-} from '~/types/portfolio.types'
+import { normalizePortfolioDocument } from '~/types/portfolio.types'
 
 const authHeaders = useAuthHeaders()
 
@@ -24,7 +21,7 @@ const hasPortfolio = ref(false)
 const portfolioId = ref<number | null>(null)
 const createdAt = ref('')
 const updatedAt = ref('')
-const portfolio = ref<PortfolioDocument>(createEmptyPortfolioDocument())
+const portfolio = ref<PortfolioDocument | null>(null)
 
 const { data, error, status, refresh } = await useFetch<CMSResponse<PortfolioResponse>>('/api/portfolio', {
   headers: authHeaders,
@@ -109,7 +106,7 @@ const loadErrorMessage = computed(() => {
 
 const metadataItems = computed(() => [
   { label: 'portfolio_id', value: portfolioId.value ?? '-' },
-  { label: 'slug', value: portfolio.value.slug || '-' },
+  { label: 'slug', value: portfolio.value?.slug || '-' },
   { label: 'created_at', value: createdAt.value || '-' },
   { label: 'updated_at', value: updatedAt.value || '-' },
 ])
@@ -159,56 +156,95 @@ function parseMultilineList(value: string) {
 }
 
 function updateProjectStack(index: number, value: string) {
-  portfolio.value.featured_projects[index].stack = parseMultilineList(value)
+  const p = portfolio.value
+  if (!p) return
+  p.featured_projects[index].stack = parseMultilineList(value)
 }
 
 function updateCareerItemBullets(companyIndex: number, itemIndex: number, value: string) {
-  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  const p = portfolio.value
+  if (!p) return
+  const career = p.career ?? { summary_label: '', summary_value: '', companies: [] }
   career.companies[companyIndex].items[itemIndex].bullets = parseMultilineList(value)
-  portfolio.value.career = career
+  p.career = career
 }
 
 function addProject() {
-  portfolio.value.featured_projects.push(createProject())
+  const p = portfolio.value
+  if (!p) return
+  p.featured_projects.push(createProject())
 }
 
 function removeProject(index: number) {
-  portfolio.value.featured_projects.splice(index, 1)
+  const p = portfolio.value
+  if (!p) return
+  p.featured_projects.splice(index, 1)
 }
 
 function addProjectLink(projectIndex: number) {
-  portfolio.value.featured_projects[projectIndex].links.push(createLink())
+  const p = portfolio.value
+  if (!p) return
+  p.featured_projects[projectIndex].links.push(createLink())
 }
 
 function removeProjectLink(projectIndex: number, linkIndex: number) {
-  portfolio.value.featured_projects[projectIndex].links.splice(linkIndex, 1)
+  const p = portfolio.value
+  if (!p) return
+  p.featured_projects[projectIndex].links.splice(linkIndex, 1)
 }
 
 function addCareerCompany() {
-  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  const p = portfolio.value
+  if (!p) return
+  const career = p.career ?? { summary_label: '', summary_value: '', companies: [] }
   career.companies.push(createCareerCompany())
-  portfolio.value.career = career
+  p.career = career
 }
 
 function removeCareerCompany(index: number) {
-  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  const p = portfolio.value
+  if (!p) return
+  const career = p.career ?? { summary_label: '', summary_value: '', companies: [] }
   career.companies.splice(index, 1)
-  portfolio.value.career = career
+  p.career = career
 }
 
 function addCareerItem(companyIndex: number) {
-  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  const p = portfolio.value
+  if (!p) return
+  const career = p.career ?? { summary_label: '', summary_value: '', companies: [] }
   career.companies[companyIndex].items.push(createCareerItem())
-  portfolio.value.career = career
+  p.career = career
 }
 
 function removeCareerItem(companyIndex: number, itemIndex: number) {
-  const career = portfolio.value.career ?? { summary_label: '', summary_value: '', companies: [] }
+  const p = portfolio.value
+  if (!p) return
+  const career = p.career ?? { summary_label: '', summary_value: '', companies: [] }
   career.companies[companyIndex].items.splice(itemIndex, 1)
-  portfolio.value.career = career
+  p.career = career
+}
+
+function initPortfolio() {
+  portfolio.value = {
+    slug: 'dev',
+    version: 1,
+    email: '',
+    github_url: '',
+    featured_projects: [],
+    career: {
+      summary_label: '',
+      summary_value: '',
+      companies: [],
+    },
+  }
 }
 
 function buildPayload() {
+  if (!portfolio.value) {
+    throw new Error('포트폴리오가 초기화되지 않았습니다.')
+  }
+
   return {
     content: {
       ...portfolio.value,
@@ -293,19 +329,21 @@ async function handleDelete() {
         <UButton color="neutral" variant="subtle" icon="i-lucide-refresh-cw" :loading="isLoading" @click="handleRefresh">
           새로고침
         </UButton>
-        <UButton color="primary" icon="i-lucide-save" :loading="isSaving" @click="handleSave">
-          {{ hasPortfolio ? '저장' : '생성' }}
-        </UButton>
-        <UButton
-          color="error"
-          variant="soft"
-          icon="i-lucide-trash"
-          :disabled="!hasPortfolio"
-          :loading="isDeleting"
-          @click="handleDelete"
-        >
-          삭제
-        </UButton>
+        <template v-if="portfolio">
+          <UButton color="primary" icon="i-lucide-save" :loading="isSaving" @click="handleSave">
+            {{ hasPortfolio ? '저장' : '생성' }}
+          </UButton>
+          <UButton
+            color="error"
+            variant="soft"
+            icon="i-lucide-trash"
+            :disabled="!hasPortfolio"
+            :loading="isDeleting"
+            @click="handleDelete"
+          >
+            삭제
+          </UButton>
+        </template>
       </div>
     </div>
 
@@ -325,13 +363,17 @@ async function handleDelete() {
       :description="successMessage"
     />
 
-    <UAlert
-      v-if="!hasPortfolio && !isLoading && !loadErrorMessage"
-      color="warning"
-      variant="subtle"
-      title="포트폴리오가 아직 없습니다."
-      description="아래 폼을 채운 뒤 생성 버튼을 누르면 `/portfolio` 문서가 만들어집니다."
-    />
+    <div v-if="!portfolio && !isLoading && !loadErrorMessage" class="space-y-4">
+      <UAlert
+        color="warning"
+        variant="subtle"
+        title="포트폴리오가 아직 없습니다."
+        description="새로 만들기 버튼을 눌러 포트폴리오를 작성할 수 있습니다."
+      />
+      <UButton color="primary" icon="i-lucide-plus" @click="initPortfolio">
+        새로 만들기
+      </UButton>
+    </div>
 
     <template v-if="isLoading">
       <UCard v-for="index in 4" :key="index">
@@ -343,7 +385,7 @@ async function handleDelete() {
       </UCard>
     </template>
 
-    <template v-else>
+    <template v-else-if="portfolio">
       <UCard>
         <template #header>
           <div>

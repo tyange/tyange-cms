@@ -50,31 +50,16 @@ export interface PortfolioResponse {
   updated_at: string
 }
 
-export function createEmptyPortfolioDocument(): PortfolioDocument {
-  return {
-    slug: 'dev',
-    version: 1,
-    email: '',
-    github_url: '',
-    featured_projects: [],
-    career: {
-      summary_label: '',
-      summary_value: '',
-      companies: [],
-    },
-  }
-}
-
-export function normalizePortfolioDocument(document?: PortfolioDocument | null): PortfolioDocument {
-  const base = createEmptyPortfolioDocument()
-
+export function normalizePortfolioDocument(document?: PortfolioDocument | null): PortfolioDocument | null {
   if (!document) {
-    return base
+    return null
   }
 
   return {
-    ...base,
-    ...document,
+    slug: document.slug ?? 'dev',
+    version: document.version ?? 1,
+    email: document.email ?? '',
+    github_url: document.github_url ?? '',
     featured_projects: (document.featured_projects ?? []).map(project => ({
       ...project,
       stack: [...(project.stack ?? [])],
@@ -82,8 +67,8 @@ export function normalizePortfolioDocument(document?: PortfolioDocument | null):
     })),
     career: document.career
       ? {
-          summary_label: document.career.summary_label ?? base.career?.summary_label ?? '',
-          summary_value: document.career.summary_value ?? base.career?.summary_value ?? '',
+          summary_label: document.career.summary_label ?? '',
+          summary_value: document.career.summary_value ?? '',
           companies: (document.career.companies ?? []).map(company => ({
             ...company,
             items: (company.items ?? []).map(item => ({
@@ -92,6 +77,6 @@ export function normalizePortfolioDocument(document?: PortfolioDocument | null):
             })),
           })),
         }
-      : base.career,
+      : undefined,
   }
 }
