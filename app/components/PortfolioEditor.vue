@@ -240,8 +240,6 @@ function initPortfolio() {
       name: '',
       email: '',
       github_url: '',
-      blog_url: null,
-      velog_url: null,
     },
     featured_projects: [],
     career: {
@@ -462,14 +460,6 @@ async function handleDelete() {
 
           <UFormField label="Github URL">
             <UInput v-model="portfolio.identity.github_url" />
-          </UFormField>
-
-          <UFormField label="Blog URL">
-            <UInput v-model="portfolio.identity.blog_url" />
-          </UFormField>
-
-          <UFormField label="Velog URL">
-            <UInput v-model="portfolio.identity.velog_url" />
           </UFormField>
         </div>
       </UCard>

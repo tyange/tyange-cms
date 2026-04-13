@@ -7,8 +7,6 @@ export interface PortfolioIdentity {
   name: string
   email: string
   github_url: string
-  blog_url?: string | null
-  velog_url?: string | null
 }
 
 export interface PortfolioProject {
@@ -70,8 +68,6 @@ export function normalizePortfolioDocument(document?: PortfolioDocument | null):
       name: document.identity?.name ?? '',
       email: document.identity?.email ?? '',
       github_url: document.identity?.github_url ?? '',
-      blog_url: document.identity?.blog_url ?? null,
-      velog_url: document.identity?.velog_url ?? null,
     },
     featured_projects: (document.featured_projects ?? []).map(project => ({
       ...project,
