@@ -5,9 +5,6 @@ export interface PortfolioLink {
 
 export interface PortfolioIdentity {
   name: string
-  role: string
-  location: string
-  availability: string
   email: string
   github_url: string
   blog_url?: string | null
@@ -71,9 +68,6 @@ export function normalizePortfolioDocument(document?: PortfolioDocument | null):
     version: document.version ?? 1,
     identity: {
       name: document.identity?.name ?? '',
-      role: document.identity?.role ?? '',
-      location: document.identity?.location ?? '',
-      availability: document.identity?.availability ?? '',
       email: document.identity?.email ?? '',
       github_url: document.identity?.github_url ?? '',
       blog_url: document.identity?.blog_url ?? null,

@@ -238,9 +238,6 @@ function initPortfolio() {
     version: 1,
     identity: {
       name: '',
-      role: '',
-      location: '',
-      availability: '',
       email: '',
       github_url: '',
       blog_url: null,
@@ -459,16 +456,20 @@ async function handleDelete() {
             <UInput v-model="portfolio.identity.name" />
           </UFormField>
 
-          <UFormField label="Role">
-            <UInput v-model="portfolio.identity.role" />
-          </UFormField>
-
           <UFormField label="Email">
             <UInput v-model="portfolio.identity.email" />
           </UFormField>
 
           <UFormField label="Github URL">
             <UInput v-model="portfolio.identity.github_url" />
+          </UFormField>
+
+          <UFormField label="Blog URL">
+            <UInput v-model="portfolio.identity.blog_url" />
+          </UFormField>
+
+          <UFormField label="Velog URL">
+            <UInput v-model="portfolio.identity.velog_url" />
           </UFormField>
         </div>
       </UCard>
