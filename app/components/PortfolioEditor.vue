@@ -125,6 +125,7 @@ function createProject(): PortfolioProject {
     period: '',
     summary: '',
     stack: [],
+    highlights: [],
     links: [createLink()],
   }
 }
@@ -159,6 +160,12 @@ function updateProjectStack(index: number, value: string) {
   const p = portfolio.value
   if (!p) return
   p.featured_projects[index].stack = parseMultilineList(value)
+}
+
+function updateProjectHighlights(index: number, value: string) {
+  const p = portfolio.value
+  if (!p) return
+  p.featured_projects[index].highlights = parseMultilineList(value)
 }
 
 function updateCareerItemBullets(companyIndex: number, itemIndex: number, value: string) {
@@ -498,6 +505,15 @@ async function handleDelete() {
                   :rows="4"
                   autoresize
                   @update:model-value="updateProjectStack(projectIndex, $event)"
+                />
+              </UFormField>
+
+              <UFormField label="Highlights (one per line)" class="sm:col-span-2">
+                <UTextarea
+                  :model-value="project.highlights.join('\n')"
+                  :rows="4"
+                  autoresize
+                  @update:model-value="updateProjectHighlights(projectIndex, $event)"
                 />
               </UFormField>
             </div>

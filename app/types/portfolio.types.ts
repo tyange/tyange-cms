@@ -9,6 +9,7 @@ export interface PortfolioProject {
   period: string
   summary: string
   stack: string[]
+  highlights: string[]
   links: PortfolioLink[]
 }
 
@@ -63,6 +64,7 @@ export function normalizePortfolioDocument(document?: PortfolioDocument | null):
     featured_projects: (document.featured_projects ?? []).map(project => ({
       ...project,
       stack: [...(project.stack ?? [])],
+      highlights: [...(project.highlights ?? [])],
       links: (project.links ?? []).map(link => ({ ...link })),
     })),
     career: document.career
