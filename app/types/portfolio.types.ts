@@ -40,12 +40,23 @@ export interface PortfolioCareerSection {
   companies: PortfolioCareerCompany[]
 }
 
+export interface PortfolioTechStackItem {
+  name: string
+  icon_url: string
+}
+
+export interface PortfolioIntroSection {
+  content: string
+  tech_stack: PortfolioTechStackItem[]
+}
+
 export interface PortfolioDocument {
   slug: string
   version: number
   identity: PortfolioIdentity
   featured_projects: PortfolioProject[]
   career?: PortfolioCareerSection
+  intro?: PortfolioIntroSection
 }
 
 export interface PortfolioResponse {
@@ -86,6 +97,12 @@ export function normalizePortfolioDocument(document?: PortfolioDocument | null):
               bullets: [...(item.bullets ?? [])],
             })),
           })),
+        }
+      : undefined,
+    intro: document.intro
+      ? {
+          content: document.intro.content ?? '',
+          tech_stack: (document.intro.tech_stack ?? []).map(item => ({ ...item })),
         }
       : undefined,
   }

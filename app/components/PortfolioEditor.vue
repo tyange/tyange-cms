@@ -3,9 +3,11 @@ import type {
   PortfolioCareerCompany,
   PortfolioCareerItem,
   PortfolioDocument,
+  PortfolioIntroSection,
   PortfolioLink,
   PortfolioProject,
   PortfolioResponse,
+  PortfolioTechStackItem,
 } from '~/types/portfolio.types'
 import type { CMSResponse } from '~/types/response.types'
 import { handleUnauthorizedError, useAuthHeaders } from '~/composables/useAuthenticatedApi'
@@ -232,6 +234,55 @@ function removeCareerItem(companyIndex: number, itemIndex: number) {
   p.career = career
 }
 
+function ensureIntro(): PortfolioIntroSection {
+  const p = portfolio.value
+  if (!p) throw new Error('portfolio not initialized')
+  if (!p.intro) {
+    p.intro = { content: '', tech_stack: [] }
+  }
+  return p.intro
+}
+
+function addTechStackItem() {
+  const intro = ensureIntro()
+  intro.tech_stack.push({ name: '', icon_url: '' })
+}
+
+function removeTechStackItem(index: number) {
+  const intro = ensureIntro()
+  intro.tech_stack.splice(index, 1)
+}
+
+const config = useRuntimeConfig()
+
+async function handleIconUpload(index: number, event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  const intro = ensureIntro()
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const res = await authenticatedFetch<CMSResponse<{ image_path: string }>>('/api/portfolio/upload-icon', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (res.data?.image_path) {
+      intro.tech_stack[index].icon_url = `${config.public.tyangeCmsApiBaseProd}${res.data.image_path}`
+    }
+  }
+  catch (err) {
+    submitError.value = getErrorMessage(err, '아이콘 업로드에 실패했습니다.')
+  }
+  finally {
+    input.value = ''
+  }
+}
+
 function initPortfolio() {
   portfolio.value = {
     slug: 'dev',
@@ -246,6 +297,10 @@ function initPortfolio() {
       summary_label: '',
       summary_value: '',
       companies: [],
+    },
+    intro: {
+      content: '',
+      tech_stack: [],
     },
   }
 }
@@ -461,6 +516,80 @@ async function handleDelete() {
           <UFormField label="Github URL">
             <UInput v-model="portfolio.identity.github_url" />
           </UFormField>
+        </div>
+      </UCard>
+
+      <UCard>
+        <template #header>
+          <h2 class="font-semibold">
+            Intro
+          </h2>
+        </template>
+
+        <div class="space-y-6">
+          <UFormField label="Content (Markdown)">
+            <UTextarea
+              :model-value="portfolio.intro?.content ?? ''"
+              :rows="6"
+              autoresize
+              placeholder="마크다운으로 인트로 텍스트를 작성하세요."
+              @update:model-value="ensureIntro().content = $event"
+            />
+          </UFormField>
+
+          <div>
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <h3 class="font-medium">
+                Tech Stack
+              </h3>
+              <UButton size="sm" variant="subtle" icon="i-lucide-plus" @click="addTechStackItem">
+                기술 추가
+              </UButton>
+            </div>
+
+            <div v-if="portfolio.intro?.tech_stack?.length" class="space-y-3">
+              <div
+                v-for="(item, index) in portfolio.intro.tech_stack"
+                :key="index"
+                class="grid items-center gap-3 sm:grid-cols-[1fr_1fr_auto_auto]"
+              >
+                <UInput v-model="item.name" placeholder="이름 (e.g. React)" />
+
+                <div class="flex items-center gap-2">
+                  <img
+                    v-if="item.icon_url"
+                    :src="item.icon_url"
+                    :alt="item.name"
+                    class="h-6 w-6 shrink-0 object-contain"
+                  >
+                  <span v-if="item.icon_url" class="truncate text-xs text-muted">
+                    {{ item.icon_url.split('/').pop() }}
+                  </span>
+                  <span v-else class="text-xs text-muted">아이콘 없음</span>
+                </div>
+
+                <UButton
+                  size="sm"
+                  variant="subtle"
+                  icon="i-lucide-upload"
+                  @click="($refs[`iconInput-${index}`] as HTMLInputElement[])?.[0]?.click()"
+                >
+                  업로드
+                </UButton>
+                <input
+                  :ref="`iconInput-${index}`"
+                  type="file"
+                  accept="image/svg+xml,image/png,image/webp"
+                  class="hidden"
+                  @change="handleIconUpload(index, $event)"
+                >
+
+                <UButton color="error" variant="ghost" icon="i-lucide-trash" @click="removeTechStackItem(index)" />
+              </div>
+            </div>
+
+            <UEmpty v-else icon="i-lucide-code-2" label="No tech stack items" />
+          </div>
         </div>
       </UCard>
 
