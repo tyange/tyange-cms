@@ -236,8 +236,16 @@ function initPortfolio() {
   portfolio.value = {
     slug: 'dev',
     version: 1,
-    email: '',
-    github_url: '',
+    identity: {
+      name: '',
+      role: '',
+      location: '',
+      availability: '',
+      email: '',
+      github_url: '',
+      blog_url: null,
+      velog_url: null,
+    },
     featured_projects: [],
     career: {
       summary_label: '',
@@ -447,12 +455,20 @@ async function handleDelete() {
         </template>
 
         <div class="grid gap-4 sm:grid-cols-2">
+          <UFormField label="Name">
+            <UInput v-model="portfolio.identity.name" />
+          </UFormField>
+
+          <UFormField label="Role">
+            <UInput v-model="portfolio.identity.role" />
+          </UFormField>
+
           <UFormField label="Email">
-            <UInput v-model="portfolio.email" />
+            <UInput v-model="portfolio.identity.email" />
           </UFormField>
 
           <UFormField label="Github URL">
-            <UInput v-model="portfolio.github_url" />
+            <UInput v-model="portfolio.identity.github_url" />
           </UFormField>
         </div>
       </UCard>

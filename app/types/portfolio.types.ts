@@ -3,6 +3,17 @@ export interface PortfolioLink {
   url: string
 }
 
+export interface PortfolioIdentity {
+  name: string
+  role: string
+  location: string
+  availability: string
+  email: string
+  github_url: string
+  blog_url?: string | null
+  velog_url?: string | null
+}
+
 export interface PortfolioProject {
   slug: string
   title: string
@@ -37,8 +48,7 @@ export interface PortfolioCareerSection {
 export interface PortfolioDocument {
   slug: string
   version: number
-  email: string
-  github_url: string
+  identity: PortfolioIdentity
   featured_projects: PortfolioProject[]
   career?: PortfolioCareerSection
 }
@@ -59,8 +69,16 @@ export function normalizePortfolioDocument(document?: PortfolioDocument | null):
   return {
     slug: document.slug ?? 'dev',
     version: document.version ?? 1,
-    email: document.email ?? '',
-    github_url: document.github_url ?? '',
+    identity: {
+      name: document.identity?.name ?? '',
+      role: document.identity?.role ?? '',
+      location: document.identity?.location ?? '',
+      availability: document.identity?.availability ?? '',
+      email: document.identity?.email ?? '',
+      github_url: document.identity?.github_url ?? '',
+      blog_url: document.identity?.blog_url ?? null,
+      velog_url: document.identity?.velog_url ?? null,
+    },
     featured_projects: (document.featured_projects ?? []).map(project => ({
       ...project,
       stack: [...(project.stack ?? [])],
